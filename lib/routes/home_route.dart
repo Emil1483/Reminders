@@ -30,9 +30,10 @@ class _HomeRouteState extends State<HomeRoute>
   }
 
   double _getValue() {
-    double x = _controller.offset * 0.01;
+    double x = _controller.offset * 0.05;
     x = math.min(x, 1);
     x = math.max(x, 0);
+    x = Curves.easeInCubic.transform(x);
     return x;
   }
 
