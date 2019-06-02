@@ -15,26 +15,34 @@ class HomeRoute extends StatefulWidget {
 class _HomeRouteState extends State<HomeRoute>
     with SingleTickerProviderStateMixin {
   ScrollController _controller;
+  AnimationController _buttonAnim;
+
+  final double _scrollBeforeButton = 50.0;
 
   @override
   void initState() {
     super.initState();
 
+    _buttonAnim = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200),
+      animationBehavior: AnimationBehavior.preserve,
+    );
     _controller = ScrollController();
+    _controller.addListener(
+      () {
+        _buttonAnim.animateTo(
+          _controller.offset > _scrollBeforeButton ? 1 : 0,
+        );
+      },
+    );
   }
 
   @override
   dispose() {
     super.dispose();
     _controller.dispose();
-  }
-
-  double _getValue() {
-    double x = _controller.offset * 0.05;
-    x = math.min(x, 1);
-    x = math.max(x, 0);
-    x = Curves.easeInCubic.transform(x);
-    return x;
+    _buttonAnim.dispose();
   }
 
   Widget _buildRaisedButton() {
@@ -43,9 +51,9 @@ class _HomeRouteState extends State<HomeRoute>
       child: Padding(
         padding: EdgeInsets.only(bottom: 32.0),
         child: AnimatedBuilder(
-          animation: _controller,
+          animation: _buttonAnim,
           builder: (BuildContext context, Widget child) {
-            double value = _getValue();
+            double value = Curves.easeInOutCubic.transform(_buttonAnim.value);
             if (value == 0) return Container();
 
             return Transform(
