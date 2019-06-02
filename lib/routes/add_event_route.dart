@@ -10,19 +10,29 @@ class AddEventRoute extends StatefulWidget {
   _AddEventRouteState createState() => _AddEventRouteState();
 }
 
-class _AddEventRouteState extends State<AddEventRoute> {
+class _AddEventRouteState extends State<AddEventRoute>
+    with SingleTickerProviderStateMixin {
+  AnimationController _controller;
+
   DateTime _eventDate;
   String _eventName = "";
-
   bool _shouldSetDate = true;
 
   static DateTime _initDate = DateTime.now().add(Duration(days: 1));
-
   static TimeOfDay _initTime = _roundedToHour(TimeOfDay.now());
 
   @override
   initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 500),
+    );
+  }
+
+  dispose() {
+    super.dispose();
+    _controller.dispose();
   }
 
   static TimeOfDay _roundedToHour(TimeOfDay dateTime) {
@@ -61,12 +71,16 @@ class _AddEventRouteState extends State<AddEventRoute> {
 
   Future<Null> _setEventDate(BuildContext context) async {
     DateTime date = await _selectDate(context);
-    if (date == null) return;
-    TimeOfDay time = await _selectTime(context);
-    if (date == null || time == null) {
-      _eventDate = null;
+    if (date == null) {
+      _controller.forward();
       return;
     }
+    TimeOfDay time = await _selectTime(context);
+    if (time == null) {
+      _controller.forward();
+      return;
+    }
+
     setState(() {
       _eventDate = DateTime(
         date.year,
@@ -76,6 +90,7 @@ class _AddEventRouteState extends State<AddEventRoute> {
         time.minute,
       );
     });
+    _controller.forward();
     return;
   }
 
@@ -147,17 +162,26 @@ class _AddEventRouteState extends State<AddEventRoute> {
       _shouldSetDate = false;
     });
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          EventModel.of(context).addEvent(
-            Event(
-              name: _eventName,
-              time: _eventDate,
+      floatingActionButton: AnimatedBuilder(
+        animation: _controller,
+        builder: (BuildContext context, Widget child) {
+          if (_shouldSetDate) return Container();
+          return Transform.scale(
+            scale: Curves.bounceOut.transform(_controller.value),
+            child: FloatingActionButton(
+              onPressed: () {
+                EventModel.of(context).addEvent(
+                  Event(
+                    name: _eventName,
+                    time: _eventDate,
+                  ),
+                );
+                Navigator.pop(context);
+              },
+              child: Icon(Icons.done),
             ),
           );
-          Navigator.pop(context);
         },
-        child: Icon(Icons.done),
       ),
       body: CustomScrollView(
         slivers: <Widget>[
