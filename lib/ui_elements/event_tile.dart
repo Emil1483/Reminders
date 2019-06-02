@@ -1,8 +1,8 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models/event.dart';
 import '../utils/time_utils.dart';
+import './transitioner.dart';
 
 class EventTile extends StatefulWidget {
   final Event event;
@@ -46,6 +46,8 @@ class _EventTileState extends State<EventTile>
         1,
         duration: Duration(),
       );
+    } else {
+      _onTap();
     }
   }
 
@@ -96,10 +98,16 @@ class _EventTileState extends State<EventTile>
                       child: ScaleTransition(
                         alignment: Alignment.center,
                         scale: animation,
-                        child: AnimatedIcon(
-                          icon: AnimatedIcons.list_view,
-                          progress: _iconAnimation,
-                          color: Colors.white,
+                        child: Transitioner(
+                          child1: Icon(
+                            Icons.check_circle_outline,
+                            color: Theme.of(context).accentColor,
+                          ),
+                          child2: Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).accentColor,
+                          ),
+                          animation: _iconAnimation,
                         ),
                       ),
                     ),

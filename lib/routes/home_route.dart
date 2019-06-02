@@ -18,6 +18,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   AnimationController _selectionAnim;
 
   final double _scrollBeforeButton = 50.0;
+  final double _bottomBarHeight = 72.0;
 
   @override
   void initState() {
@@ -54,7 +55,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
-        padding: EdgeInsets.only(bottom: 32.0),
+        padding: EdgeInsets.only(bottom: 82.0),
         child: AnimatedBuilder(
           animation: _buttonAnim,
           builder: (BuildContext context, Widget child) {
@@ -88,14 +89,76 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildBottomBar() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: AnimatedBuilder(
+        animation: _selectionAnim,
+        builder: (BuildContext context, Widget child) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(16.0),
+              ),
+            ),
+            height: Curves.easeInOutCubic.transform(_selectionAnim.value) *
+                _bottomBarHeight,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.cancel,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      _selectionAnim.reverse();
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.done,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {},
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {},
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        backgroundColor: Theme.of(context).accentColor,
-        onPressed: () => Navigator.pushNamed(context, "/addEvent"),
+      floatingActionButton: AnimatedBuilder(
+        animation: _selectionAnim,
+        builder: (BuildContext context, Widget child) {
+          return Transform.scale(
+            scale: Curves.easeInOutCubic.transform(1 - _selectionAnim.value),
+            child: FloatingActionButton(
+              child: Icon(Icons.add),
+              backgroundColor: Theme.of(context).accentColor,
+              onPressed: () => Navigator.pushNamed(context, "/addEvent"),
+            ),
+          );
+        },
       ),
       body: Stack(
         children: <Widget>[
@@ -143,6 +206,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
             ],
           ),
           _buildRaisedButton(),
+          _buildBottomBar(),
         ],
       ),
     );
