@@ -12,10 +12,10 @@ class HomeRoute extends StatefulWidget {
   _HomeRouteState createState() => _HomeRouteState();
 }
 
-class _HomeRouteState extends State<HomeRoute>
-    with SingleTickerProviderStateMixin {
+class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   ScrollController _controller;
   AnimationController _buttonAnim;
+  AnimationController _selectionAnim;
 
   final double _scrollBeforeButton = 50.0;
 
@@ -27,6 +27,10 @@ class _HomeRouteState extends State<HomeRoute>
       vsync: this,
       duration: Duration(milliseconds: 200),
       animationBehavior: AnimationBehavior.preserve,
+    );
+    _selectionAnim = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 250),
     );
     _controller = ScrollController();
     _controller.addListener(
@@ -43,6 +47,7 @@ class _HomeRouteState extends State<HomeRoute>
     super.dispose();
     _controller.dispose();
     _buttonAnim.dispose();
+    _selectionAnim.dispose();
   }
 
   Widget _buildRaisedButton() {
@@ -130,7 +135,9 @@ class _HomeRouteState extends State<HomeRoute>
                       ),
                     ],
                   ),
-                  EventList(),
+                  EventList(
+                    controller: _selectionAnim,
+                  ),
                 ]),
               ),
             ],

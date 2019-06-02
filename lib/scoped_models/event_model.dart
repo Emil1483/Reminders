@@ -13,26 +13,6 @@ class EventModel extends Model {
       name: "Finish this app",
       time: DateTime.now(),
     ),
-    Event(
-      name: "Finish this app",
-      time: DateTime.now(),
-    ),
-    Event(
-      name: "Finish this app",
-      time: DateTime.now(),
-    ),
-    Event(
-      name: "Finish this app",
-      time: DateTime.now(),
-    ),
-    Event(
-      name: "Finish this app",
-      time: DateTime.now(),
-    ),
-    Event(
-      name: "Finish this app",
-      time: DateTime.now(),
-    ),
   ];
 
   List<Event> get events => List.from(_events);

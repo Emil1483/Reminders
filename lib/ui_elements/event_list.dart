@@ -6,6 +6,12 @@ import '../models/event.dart';
 import '../scoped_models/event_model.dart';
 
 class EventList extends StatelessWidget {
+  final AnimationController controller;
+
+  EventList({
+    @required this.controller,
+  }) : assert(controller != null);
+
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant(
@@ -21,6 +27,7 @@ class EventList extends StatelessWidget {
                 ),
                 child: EventTile(
                   event: event,
+                  animation: controller,
                 ),
               );
             },

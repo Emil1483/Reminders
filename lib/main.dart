@@ -29,6 +29,7 @@ class _MyAppState extends State<MyApp> {
         title: 'Flutter Demo',
         theme: ThemeData(
           cardColor: Color(0x42ffffff),
+          indicatorColor: Colors.deepPurpleAccent[200].withAlpha(32),
           primaryColor: Color(0xff303030),
           canvasColor: Color(0xff212121),
           disabledColor: Color(0x42ffffff),
@@ -55,7 +56,7 @@ class _MyAppState extends State<MyApp> {
               fontWeight: FontWeight.w400,
             ),
             subtitle: TextStyle(
-              color: Colors.white30,
+              color: Colors.white54,
               fontSize: 12.0,
               fontWeight: FontWeight.w300,
             ),
