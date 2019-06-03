@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:reminders/scoped_models/event_model.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 import '../ui_elements/event_list.dart';
 
@@ -33,6 +35,9 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
       vsync: this,
       duration: Duration(milliseconds: 250),
     );
+    _selectionAnim.addListener(() {
+      if (!_selectionAnim.isAnimating) setState(() {});
+    });
     _controller = ScrollController();
     _controller.addListener(
       () {
@@ -114,6 +119,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                     ),
                     onPressed: () {
                       _selectionAnim.reverse();
+                      EventModel.of(context).clearSelectedEvents();
                     },
                   ),
                 ),
@@ -143,6 +149,61 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildCustomScrollView() {
+    return CustomScrollView(
+      controller: _controller,
+      slivers: <Widget>[
+        SliverAppBar(
+          expandedHeight: 200.0,
+          floating: true,
+          pinned: true,
+          backgroundColor: Colors.black,
+          flexibleSpace: ScopedModelDescendant(
+            builder: (BuildContext context, Widget child, EventModel model) {
+              String text = !_selectionAnim.isCompleted
+                  ? "Reminder"
+                  : model.selectedEvents.isEmpty
+                      ? "Select Reminders"
+                      : "${model.selectedEvents.length} selected";
+              return FlexibleSpaceBar(
+                centerTitle: true,
+                title: Text(
+                  text,
+                  style: Theme.of(context).textTheme.headline,
+                ),
+              );
+            },
+          ),
+        ),
+        SliverList(
+          delegate: SliverChildListDelegate([
+            ButtonBar(
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(
+                    Icons.search,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+            EventList(
+              controller: _selectionAnim,
+            ),
+          ]),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,49 +223,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
       ),
       body: Stack(
         children: <Widget>[
-          CustomScrollView(
-            controller: _controller,
-            slivers: <Widget>[
-              SliverAppBar(
-                expandedHeight: 200.0,
-                floating: true,
-                pinned: true,
-                backgroundColor: Colors.black,
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: true,
-                  title: Text(
-                    "Reminder",
-                    style: Theme.of(context).textTheme.headline,
-                  ),
-                ),
-              ),
-              SliverList(
-                delegate: SliverChildListDelegate([
-                  ButtonBar(
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(
-                          Icons.search,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  EventList(
-                    controller: _selectionAnim,
-                  ),
-                ]),
-              ),
-            ],
-          ),
+          _buildCustomScrollView(),
           _buildRaisedButton(),
           _buildBottomBar(),
         ],

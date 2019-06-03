@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/event.dart';
 import '../utils/time_utils.dart';
 import './transitioner.dart';
+import '../scoped_models/event_model.dart';
 
 class EventTile extends StatefulWidget {
   final Event event;
@@ -31,6 +32,14 @@ class _EventTileState extends State<EventTile>
         milliseconds: 500,
       ),
     );
+    widget.animation.addListener(() {
+      if (widget.animation.isDismissed) {
+        _iconAnimation.animateTo(
+          0,
+          duration: Duration(),
+        );
+      }
+    });
   }
 
   @override
@@ -46,15 +55,33 @@ class _EventTileState extends State<EventTile>
         1,
         duration: Duration(),
       );
+      _select();
     } else {
-      _onTap();
+      _toggleSelected();
     }
   }
 
   void _onTap() {
+    if (widget.animation.value > 0.5) {
+      _toggleSelected();
+    }
+  }
+
+  void _toggleSelected() {
+    bool add = _iconAnimation.value < 0.5;
     _iconAnimation.fling(
-      velocity: _iconAnimation.value < 0.5 ? 1 : -1,
+      velocity: add ? 1 : -1,
     );
+    EventModel model = EventModel.of(context);
+    if (add) {
+      model.addToSelectedEvents(widget.event);
+    } else {
+      model.removeFromSelectedEvents(widget.event);
+    }
+  }
+
+  void _select() {
+    EventModel.of(context).addToSelectedEvents(widget.event);
   }
 
   @override
@@ -93,6 +120,7 @@ class _EventTileState extends State<EventTile>
                   Expanded(
                     flex: 0,
                     child: Container(
+                      alignment: Alignment.centerLeft,
                       width:
                           Curves.easeInOutCubic.transform(animation.value) * 50,
                       child: ScaleTransition(
