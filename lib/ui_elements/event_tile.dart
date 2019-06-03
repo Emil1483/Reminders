@@ -9,6 +9,8 @@ class EventTile extends StatefulWidget {
   final Event event;
   final AnimationController animation;
 
+  static BorderRadiusGeometry borderRadius = BorderRadius.circular(22.0);
+
   EventTile({
     @required this.event,
     @required this.animation,
@@ -90,21 +92,15 @@ class _EventTileState extends State<EventTile>
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
-    BorderRadiusGeometry borderRadius = BorderRadius.circular(22.0);
     AnimationController animation = widget.animation;
 
     return AnimatedBuilder(
       animation: widget.animation,
       builder: (BuildContext context, Widget child) {
         return Container(
-          width: double.infinity,
-          margin: EdgeInsets.only(
-            bottom: 8.0,
-            left: 8.0,
-            right: 8.0,
-          ),
+          margin: EdgeInsets.only(top: 8.0),
           decoration: BoxDecoration(
-            borderRadius: borderRadius,
+            borderRadius: EventTile.borderRadius,
             color: Color.lerp(
               Theme.of(context).cardColor,
               Theme.of(context).indicatorColor,
@@ -113,7 +109,7 @@ class _EventTileState extends State<EventTile>
             ),
           ),
           child: InkWell(
-            borderRadius: borderRadius,
+            borderRadius: EventTile.borderRadius,
             onTap: _onTap,
             onLongPress: _onLongPress,
             child: Padding(

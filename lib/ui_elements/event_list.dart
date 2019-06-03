@@ -15,11 +15,11 @@ class EventList extends StatelessWidget {
 
   void removeSelectedItems(BuildContext context) {
     EventModel model = EventModel.of(context);
-    List<int> indexes = model.selectedEvents
-        .map(
-          (Event e) => model.events.indexOf(e),
-        )
-        .toList();
+    List<int> indexes = model.selectedEvents.map(
+      (Event e) {
+        return model.events.indexOf(e);
+      },
+    ).toList();
 
     for (int index in indexes) {
       EventTile eventTile = EventTile(
@@ -31,7 +31,7 @@ class EventList extends StatelessWidget {
         (BuildContext context, Animation<double> animation) {
           return _slideOutEventTile(context, animation, eventTile);
         },
-        duration: Duration(milliseconds: 400),
+        duration: Duration(milliseconds: 5000),
       );
     }
 
@@ -47,22 +47,41 @@ class EventList extends StatelessWidget {
     animatedListKey.currentState.insertItem(model.events.length - 1);
   }
 
+  Animation<Offset> _getPosition(Animation<double> animation) {
+    return Tween<Offset>(
+      begin: Offset(1, 0),
+      end: Offset.zero,
+    )
+        .chain(
+          CurveTween(
+            curve: Curves.easeOutCubic,
+          ),
+        )
+        .animate(animation);
+  }
+
   Widget _slideOutEventTile(
     BuildContext context,
     Animation<double> animation,
     EventTile eventTile,
   ) {
-    final pos = Tween<Offset>(
-      begin: Offset(1, 0),
-      end: Offset.zero,
-    )
-        .chain(
-          CurveTween(curve: Curves.easeOutCubic),
-        )
-        .animate(animation);
     return SlideTransition(
-      child: eventTile,
-      position: pos,
+      position: _getPosition(animation),
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (BuildContext context, Widget child) {
+          return Container(
+            height: (animation.value) * 100,
+            color: Colors.blue,
+            child: ClipRRect(
+              borderRadius: EventTile.borderRadius,
+              child: SingleChildScrollView(
+                child: eventTile,
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -70,17 +89,23 @@ class EventList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScopedModelDescendant(
       builder: (BuildContext context, Widget child, EventModel model) {
-        return AnimatedList(
-          key: animatedListKey,
-          shrinkWrap: true,
-          initialItemCount: model.events.length,
-          itemBuilder:
-              (BuildContext context, int index, Animation<double> _) {
-            return EventTile(
-              event: model.events[index],
-              animation: controller,
-            );
-          },
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.0),
+          child: AnimatedList(
+            key: animatedListKey,
+            shrinkWrap: true,
+            initialItemCount: model.events.length,
+            itemBuilder:
+                (BuildContext context, int index, Animation<double> animation) {
+              return SlideTransition(
+                position: _getPosition(animation),
+                child: EventTile(
+                  event: model.events[index],
+                  animation: controller,
+                ),
+              );
+            },
+          ),
         );
       },
     );
