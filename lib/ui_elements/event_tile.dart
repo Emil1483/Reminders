@@ -32,20 +32,23 @@ class _EventTileState extends State<EventTile>
         milliseconds: 500,
       ),
     );
-    widget.animation.addListener(() {
-      if (widget.animation.isDismissed) {
-        _iconAnimation.animateTo(
-          0,
-          duration: Duration(),
-        );
-      }
-    });
+    widget.animation.addListener(_listener);
   }
 
   @override
   void dispose() {
     super.dispose();
+    widget.animation.removeListener(_listener);
     _iconAnimation.dispose();
+  }
+
+  void _listener() {
+    if (widget.animation.isDismissed) {
+      _iconAnimation.animateTo(
+        0,
+        duration: Duration(),
+      );
+    }
   }
 
   void _onLongPress() {

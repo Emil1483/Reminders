@@ -170,13 +170,13 @@ class _AddEventRouteState extends State<AddEventRoute>
             scale: Curves.bounceOut.transform(_controller.value),
             child: FloatingActionButton(
               onPressed: () {
-                EventModel.of(context).addEvent(
+                Navigator.pop(
+                  context,
                   Event(
                     name: _eventName,
                     time: _eventDate,
                   ),
                 );
-                Navigator.pop(context);
               },
               child: Icon(Icons.done),
             ),

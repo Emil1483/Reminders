@@ -8,6 +8,7 @@ import 'package:reminders/scoped_models/event_model.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../ui_elements/event_list.dart';
+import '../models/event.dart';
 
 class HomeRoute extends StatefulWidget {
   @override
@@ -18,6 +19,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   ScrollController _controller;
   AnimationController _buttonAnim;
   AnimationController _selectionAnim;
+  EventList _eventList;
 
   final double _scrollBeforeButton = 50.0;
   final double _bottomBarHeight = 72.0;
@@ -45,6 +47,9 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
           _controller.offset > _scrollBeforeButton ? 1 : 0,
         );
       },
+    );
+    _eventList = EventList(
+      controller: _selectionAnim,
     );
   }
 
@@ -129,7 +134,10 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                       Icons.done,
                       color: Colors.white,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      _eventList.removeSelectedItems(context);
+                      _selectionAnim.reverse();
+                    },
                   ),
                 ),
                 Expanded(
@@ -195,9 +203,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            EventList(
-              controller: _selectionAnim,
-            ),
+            _eventList,
           ]),
         ),
       ],
@@ -216,7 +222,13 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
             child: FloatingActionButton(
               child: Icon(Icons.add),
               backgroundColor: Theme.of(context).accentColor,
-              onPressed: () => Navigator.pushNamed(context, "/addEvent"),
+              onPressed: () async {
+                final event = await Navigator.pushNamed(context, "/addEvent");
+                _eventList.insertItem(
+                  context: context,
+                  event: event,
+                );
+              },
             ),
           );
         },
