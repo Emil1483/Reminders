@@ -9,6 +9,12 @@ class EventList extends StatelessWidget {
   final AnimationController controller;
   final animatedListKey = GlobalKey<AnimatedListState>();
 
+  static Duration _dismissedDuration = Duration(milliseconds: 400);
+
+  // TODO: Store the eventTiles in an array *somehow
+  // TODO: Then use the elements of that array to understand each widget's height to animate it out
+  // This will make the animation smoother for bigger items
+
   EventList({
     @required this.controller,
   }) : assert(controller != null);
@@ -21,7 +27,8 @@ class EventList extends StatelessWidget {
       },
     ).toList();
 
-    for (int index in indexes) {
+    for (int i = indexes.length - 1; i >= 0; i--) {
+      int index = indexes[i];
       EventTile eventTile = EventTile(
         animation: controller,
         event: model.events[index],
@@ -31,7 +38,7 @@ class EventList extends StatelessWidget {
         (BuildContext context, Animation<double> animation) {
           return _slideOutEventTile(context, animation, eventTile);
         },
-        duration: Duration(milliseconds: 5000),
+        duration: _dismissedDuration,
       );
     }
 
@@ -49,7 +56,7 @@ class EventList extends StatelessWidget {
 
   Animation<Offset> _getPosition(Animation<double> animation) {
     return Tween<Offset>(
-      begin: Offset(1, 0),
+      begin: Offset(1.1, 0),
       end: Offset.zero,
     )
         .chain(
@@ -70,12 +77,12 @@ class EventList extends StatelessWidget {
       child: AnimatedBuilder(
         animation: animation,
         builder: (BuildContext context, Widget child) {
+          double value = Curves.easeInOutCubic.transform(animation.value);
           return Container(
-            height: (animation.value) * 100,
-            color: Colors.blue,
-            child: ClipRRect(
-              borderRadius: EventTile.borderRadius,
-              child: SingleChildScrollView(
+            height: value * 100.0,
+            child: SingleChildScrollView(
+              child: Transform(
+                transform: Matrix4.identity()..scale(1.0, value, 1.0),
                 child: eventTile,
               ),
             ),
@@ -95,6 +102,7 @@ class EventList extends StatelessWidget {
             key: animatedListKey,
             shrinkWrap: true,
             initialItemCount: model.events.length,
+            physics: NeverScrollableScrollPhysics(),
             itemBuilder:
                 (BuildContext context, int index, Animation<double> animation) {
               return SlideTransition(

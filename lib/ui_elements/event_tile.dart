@@ -98,7 +98,7 @@ class _EventTileState extends State<EventTile>
       animation: widget.animation,
       builder: (BuildContext context, Widget child) {
         return Container(
-          margin: EdgeInsets.only(top: 8.0),
+          margin: EdgeInsets.only(bottom: 8.0),
           decoration: BoxDecoration(
             borderRadius: EventTile.borderRadius,
             color: Color.lerp(
