@@ -14,14 +14,16 @@ class EventTile extends StatefulWidget {
   EventTile({
     @required this.event,
     @required this.animation,
+    Key key,
   })  : assert(event != null),
-        assert(animation != null);
+        assert(animation != null),
+        super(key: key);
 
   @override
-  _EventTileState createState() => _EventTileState();
+  EventTileState createState() => EventTileState();
 }
 
-class _EventTileState extends State<EventTile>
+class EventTileState extends State<EventTile>
     with SingleTickerProviderStateMixin {
   AnimationController _iconAnimation;
 
@@ -87,6 +89,10 @@ class _EventTileState extends State<EventTile>
 
   void _select() {
     EventModel.of(context).addToSelectedEvents(widget.event);
+  }
+
+  double get height {
+    return context.size.height;
   }
 
   @override

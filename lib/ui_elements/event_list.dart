@@ -8,12 +8,9 @@ import '../scoped_models/event_model.dart';
 class EventList extends StatelessWidget {
   final AnimationController controller;
   final animatedListKey = GlobalKey<AnimatedListState>();
-
   static Duration _dismissedDuration = Duration(milliseconds: 400);
 
-  // TODO: Store the eventTiles in an array *somehow
-  // TODO: Then use the elements of that array to understand each widget's height to animate it out
-  // This will make the animation smoother for bigger items
+  final List<GlobalKey<EventTileState>> _eventTileKeys = [];
 
   EventList({
     @required this.controller,
@@ -29,14 +26,16 @@ class EventList extends StatelessWidget {
 
     for (int i = indexes.length - 1; i >= 0; i--) {
       int index = indexes[i];
-      EventTile eventTile = EventTile(
-        animation: controller,
-        event: model.events[index],
-      );
+      print(index);
+
       animatedListKey.currentState.removeItem(
         index,
         (BuildContext context, Animation<double> animation) {
-          return _slideOutEventTile(context, animation, eventTile);
+          return _slideOutEventTile(
+            context: context,
+            animation: animation,
+            index: index,
+          );
         },
         duration: _dismissedDuration,
       );
@@ -67,11 +66,16 @@ class EventList extends StatelessWidget {
         .animate(animation);
   }
 
-  Widget _slideOutEventTile(
+  Widget _slideOutEventTile({
     BuildContext context,
     Animation<double> animation,
-    EventTile eventTile,
-  ) {
+    int index,
+  }) {
+    print(index);
+    EventTile eventTile = EventTile(
+      animation: controller,
+      event: EventModel.of(context).events[index],
+    );
     return SlideTransition(
       position: _getPosition(animation),
       child: AnimatedBuilder(
@@ -94,6 +98,8 @@ class EventList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    _eventTileKeys.clear();
+
     return ScopedModelDescendant(
       builder: (BuildContext context, Widget child, EventModel model) {
         return Padding(
@@ -105,12 +111,16 @@ class EventList extends StatelessWidget {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder:
                 (BuildContext context, int index, Animation<double> animation) {
+              GlobalKey<EventTileState> tileKey = GlobalKey<EventTileState>();
+              EventTile newTile = EventTile(
+                //key: tileKey,
+                event: model.events[index],
+                animation: controller,
+              );
+              //_eventTileKeys.add(tileKey);
               return SlideTransition(
                 position: _getPosition(animation),
-                child: EventTile(
-                  event: model.events[index],
-                  animation: controller,
-                ),
+                child: newTile,
               );
             },
           ),
