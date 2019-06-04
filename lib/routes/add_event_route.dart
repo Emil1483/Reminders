@@ -15,7 +15,8 @@ class _AddEventRouteState extends State<AddEventRoute>
 
   DateTime _eventDate;
   String _eventName = "An unnamed reminder";
-  bool _shouldSetDate = true;
+
+  bool _firstBuild = true;
 
   static DateTime _initDate = DateTime.now().add(Duration(days: 1));
   static TimeOfDay _initTime = _roundedToHour(TimeOfDay.now());
@@ -68,7 +69,8 @@ class _AddEventRouteState extends State<AddEventRoute>
     return picked;
   }
 
-  Future<Null> _setEventDate(BuildContext context) async {
+  Future<Null> _setEventDate(BuildContext context,
+      {bool shouldSetState = true}) async {
     DateTime date = await _selectDate(context);
     if (date == null) {
       _controller.forward();
@@ -89,6 +91,7 @@ class _AddEventRouteState extends State<AddEventRoute>
         time.minute,
       );
     });
+
     _controller.forward();
     return;
   }
@@ -152,19 +155,33 @@ class _AddEventRouteState extends State<AddEventRoute>
     );
   }
 
+  void _initSetEvent() {
+    if (!_firstBuild) return;
+    final Object args = ModalRoute.of(context).settings.arguments;
+    if (args != null && args is Event) {
+      Event event = args;
+      _eventDate = event.time;
+      _eventName = event.name;
+      _controller.animateTo(
+        1,
+        duration: Duration(),
+      );
+    } else {
+      Future.delayed(Duration()).then((_) {
+        _setEventDate(context);
+      });
+    }
+    _firstBuild = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
-
-    Future.delayed(Duration(seconds: 0)).then((_) {
-      if (_shouldSetDate) _setEventDate(context);
-      _shouldSetDate = false;
-    });
+    _initSetEvent();
     return Scaffold(
       floatingActionButton: AnimatedBuilder(
         animation: _controller,
         builder: (BuildContext context, Widget child) {
-          if (_shouldSetDate) return Container();
           return Transform.scale(
             scale: Curves.bounceOut.transform(_controller.value),
             child: FloatingActionButton(

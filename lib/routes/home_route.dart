@@ -219,10 +219,11 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
             backgroundColor: Theme.of(context).accentColor,
             onPressed: () async {
               if (_selectionAnim.value != 0) return;
-              final event = await Navigator.pushNamed(context, "/addEvent");
+              final newEvent = await Navigator.pushNamed(context, "/addEvent");
+              if (newEvent == null) return;
               _eventList.insertItem(
                 context: context,
-                event: event,
+                event: newEvent,
               );
             },
           ),
