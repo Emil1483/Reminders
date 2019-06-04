@@ -28,6 +28,9 @@ class _AddEventRouteState extends State<AddEventRoute>
       vsync: this,
       duration: Duration(milliseconds: 500),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _firstBuild = false;
+    });
   }
 
   dispose() {
@@ -97,10 +100,23 @@ class _AddEventRouteState extends State<AddEventRoute>
   }
 
   Widget _buildTextField() {
+    String initText;
+    if (_firstBuild) {
+      final Object args = ModalRoute.of(context).settings.arguments;
+      if (args != null && args is Event) {
+        Event event = args;
+        initText = event.name;
+      }
+    }
     return Container(
       padding: EdgeInsets.all(8.0),
       margin: EdgeInsets.all(32.0),
       child: TextField(
+        controller: initText == null
+            ? null
+            : TextEditingController(
+                text: initText,
+              ),
         style: Theme.of(context).textTheme.title,
         onChanged: (String name) {
           setState(() {
@@ -171,7 +187,6 @@ class _AddEventRouteState extends State<AddEventRoute>
         _setEventDate(context);
       });
     }
-    _firstBuild = false;
   }
 
   @override
