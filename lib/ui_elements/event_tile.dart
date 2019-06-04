@@ -14,8 +14,10 @@ class EventTile extends StatefulWidget {
   EventTile({
     @required this.event,
     @required this.animation,
+    Key key,
   })  : assert(event != null),
-        assert(animation != null);
+        assert(animation != null),
+        super(key: key);
 
   @override
   _EventTileState createState() => _EventTileState();
@@ -97,6 +99,50 @@ class _EventTileState extends State<EventTile>
     return AnimatedBuilder(
       animation: widget.animation,
       builder: (BuildContext context, Widget child) {
+        Widget icon = Expanded(
+          flex: 0,
+          child: Container(
+            alignment: Alignment.centerLeft,
+            width: Curves.easeInOutCubic.transform(animation.value) * 50,
+            child: ScaleTransition(
+              alignment: Alignment.center,
+              scale: animation,
+              child: Transitioner(
+                child1: Icon(
+                  Icons.check_circle_outline,
+                  color: Theme.of(context).accentColor,
+                ),
+                child2: Icon(
+                  Icons.check_circle,
+                  color: Theme.of(context).accentColor,
+                ),
+                animation: _iconAnimation,
+              ),
+            ),
+          ),
+        );
+
+        Widget text = Expanded(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                widget.event.name,
+                style: textTheme.title,
+              ),
+              SizedBox(height: 4.0),
+              widget.event.time != null
+                  ? Text(
+                      timeToString(widget.event.time),
+                      style: textTheme.subtitle,
+                    )
+                  : Container(),
+            ],
+          ),
+        );
+
         return Container(
           margin: EdgeInsets.only(bottom: 8.0),
           decoration: BoxDecoration(
@@ -104,8 +150,7 @@ class _EventTileState extends State<EventTile>
             color: Color.lerp(
               Theme.of(context).cardColor,
               Theme.of(context).indicatorColor,
-              Curves.easeInOutCubic
-                  .transform(Curves.easeInOutCubic.transform(animation.value)),
+              Curves.easeInOutCubic.transform(animation.value),
             ),
           ),
           child: InkWell(
@@ -116,49 +161,8 @@ class _EventTileState extends State<EventTile>
               padding: EdgeInsets.symmetric(horizontal: 32.0, vertical: 22.0),
               child: Row(
                 children: <Widget>[
-                  Expanded(
-                    flex: 0,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      width:
-                          Curves.easeInOutCubic.transform(animation.value) * 50,
-                      child: ScaleTransition(
-                        alignment: Alignment.center,
-                        scale: animation,
-                        child: Transitioner(
-                          child1: Icon(
-                            Icons.check_circle_outline,
-                            color: Theme.of(context).accentColor,
-                          ),
-                          child2: Icon(
-                            Icons.check_circle,
-                            color: Theme.of(context).accentColor,
-                          ),
-                          animation: _iconAnimation,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          widget.event.name,
-                          style: textTheme.title,
-                        ),
-                        SizedBox(height: 4.0),
-                        widget.event.time != null
-                            ? Text(
-                                timeToString(widget.event.time),
-                                style: textTheme.subtitle,
-                              )
-                            : Container(),
-                      ],
-                    ),
-                  ),
+                  icon,
+                  text,
                 ],
               ),
             ),

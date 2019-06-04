@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import '../models/event.dart';
-import '../scoped_models/event_model.dart';
 import '../utils/time_utils.dart';
 
 class AddEventRoute extends StatefulWidget {

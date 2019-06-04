@@ -9,12 +9,6 @@ class EventList extends StatelessWidget {
   final AnimationController controller;
   final animatedListKey = GlobalKey<AnimatedListState>();
 
-  static Duration _dismissedDuration = Duration(milliseconds: 400);
-
-  // TODO: Store the eventTiles in an array *somehow
-  // TODO: Then use the elements of that array to understand each widget's height to animate it out
-  // This will make the animation smoother for bigger items
-
   EventList({
     @required this.controller,
   }) : assert(controller != null);
@@ -29,16 +23,18 @@ class EventList extends StatelessWidget {
 
     for (int i = indexes.length - 1; i >= 0; i--) {
       int index = indexes[i];
-      EventTile eventTile = EventTile(
-        animation: controller,
-        event: model.events[index],
-      );
+      Event event = model.events[index];
       animatedListKey.currentState.removeItem(
         index,
         (BuildContext context, Animation<double> animation) {
-          return _slideOutEventTile(context, animation, eventTile);
+          return _slideOutEventTile(
+            context: context,
+            animation: animation,
+            index: index,
+            event: event,
+          );
         },
-        duration: _dismissedDuration,
+        duration: Duration(milliseconds: 400),
       );
     }
 
@@ -56,7 +52,7 @@ class EventList extends StatelessWidget {
 
   Animation<Offset> _getPosition(Animation<double> animation) {
     return Tween<Offset>(
-      begin: Offset(1.1, 0),
+      begin: Offset(1, 0),
       end: Offset.zero,
     )
         .chain(
@@ -67,11 +63,27 @@ class EventList extends StatelessWidget {
         .animate(animation);
   }
 
-  Widget _slideOutEventTile(
-    BuildContext context,
-    Animation<double> animation,
-    EventTile eventTile,
-  ) {
+  Widget _slideOutEventTile({
+    @required BuildContext context,
+    @required Animation<double> animation,
+    @required int index,
+    @required Event event,
+  }) {
+    GlobalKey key = GlobalKey();
+    EventTile eventTile = EventTile(
+      key: key,
+      animation: controller,
+      event: event,
+    );
+
+    double height;
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        final RenderBox renderBox = key.currentContext.findRenderObject();
+        height = renderBox.size.height;
+      },
+    );
+
     return SlideTransition(
       position: _getPosition(animation),
       child: AnimatedBuilder(
@@ -79,7 +91,7 @@ class EventList extends StatelessWidget {
         builder: (BuildContext context, Widget child) {
           double value = Curves.easeInOutCubic.transform(animation.value);
           return Container(
-            height: value * 100.0,
+            height: height != null ? value * height : null,
             child: SingleChildScrollView(
               child: Transform(
                 transform: Matrix4.identity()..scale(1.0, value, 1.0),
