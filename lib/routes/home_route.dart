@@ -8,6 +8,7 @@ import 'package:reminders/scoped_models/event_model.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../ui_elements/event_list.dart';
+import '../ui_elements/transitioner.dart';
 
 class HomeRoute extends StatefulWidget {
   @override
@@ -18,6 +19,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   ScrollController _scrollController;
   AnimationController _buttonAnim;
   AnimationController _selectionAnim;
+  AnimationController _bottomBarButtonAnim;
   EventList _eventList;
 
   final double _scrollBeforeButton = 50.0;
@@ -53,6 +55,17 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
     )..addListener(() {
         if (!_selectionAnim.isAnimating) setState(() {});
       });
+
+    _bottomBarButtonAnim = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 250),
+    );
+    EventModel model = EventModel.of(context);
+    model.addListener(() {
+      _bottomBarButtonAnim.animateTo(
+        model.selectedEvents.length == 0 ? 0 : 1,
+      );
+    });
 
     _scrollController = ScrollController()
       ..addListener(() {
@@ -128,24 +141,19 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                 ),
               ),
               Expanded(
-                child: IconButton(
-                  icon: Icon(
-                    Icons.done,
-                    color: Colors.white,
+                child: Transitioner(
+                  child1: Container(),
+                  animation: _bottomBarButtonAnim,
+                  child2: IconButton(
+                    icon: Icon(
+                      Icons.done,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      _selectionAnim.reverse();
+                      _eventList.removeSelectedItems(context);
+                    },
                   ),
-                  onPressed: () {
-                    _eventList.removeSelectedItems(context);
-                    _selectionAnim.reverse();
-                  },
-                ),
-              ),
-              Expanded(
-                child: IconButton(
-                  icon: Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {},
                 ),
               ),
             ],
