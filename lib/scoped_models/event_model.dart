@@ -62,8 +62,8 @@ class EventModel extends Model {
     _events.add(
       Event(
         time: event.time,
+        name: event.name != null ? event.name : "",
         id: _validNewId(event.id) ? event.id : _generateId(),
-        name: event.name.isNotEmpty ? event.name : "An unnamed reminder",
       ),
     );
     notifyListeners();

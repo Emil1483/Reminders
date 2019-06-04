@@ -71,7 +71,21 @@ class _EventTileState extends State<EventTile>
   void _onTap() {
     if (widget.animation.value > 0.5) {
       _toggleSelected();
+    } else {
+      _editEvent();
     }
+  }
+
+  void _editEvent() async {
+    final newEvent = await Navigator.pushNamed(
+      context,
+      "/addEvent",
+      arguments: widget.event,
+    );
+    if (newEvent == null) return;
+    setState(() {
+      widget.event.modify(newEvent);
+    });
   }
 
   void _toggleSelected() {

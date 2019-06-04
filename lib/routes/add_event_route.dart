@@ -14,7 +14,7 @@ class _AddEventRouteState extends State<AddEventRoute>
   AnimationController _controller;
 
   DateTime _eventDate;
-  String _eventName = "";
+  String _eventName = "An unnamed reminder";
   bool _shouldSetDate = true;
 
   static DateTime _initDate = DateTime.now().add(Duration(days: 1));
@@ -101,7 +101,7 @@ class _AddEventRouteState extends State<AddEventRoute>
         style: Theme.of(context).textTheme.title,
         onChanged: (String name) {
           setState(() {
-            _eventName = name;
+            _eventName = name.isNotEmpty ? name : "An unnamed reminder";
           });
         },
         decoration: InputDecoration(
@@ -197,6 +197,7 @@ class _AddEventRouteState extends State<AddEventRoute>
                         Text(
                           _eventName,
                           style: textTheme.display4,
+                          textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 4.0),
                         _eventDate != null
