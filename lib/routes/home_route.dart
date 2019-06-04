@@ -19,7 +19,6 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   ScrollController _scrollController;
   AnimationController _buttonAnim;
   AnimationController _selectionAnim;
-  AnimationController _bottomBarButtonAnim;
   EventList _eventList;
 
   final double _scrollBeforeButton = 50.0;
@@ -55,17 +54,6 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
     )..addListener(() {
         if (!_selectionAnim.isAnimating) setState(() {});
       });
-
-    _bottomBarButtonAnim = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 250),
-    );
-    EventModel model = EventModel.of(context);
-    model.addListener(() {
-      _bottomBarButtonAnim.animateTo(
-        model.selectedEvents.length == 0 ? 0 : 1,
-      );
-    });
 
     _scrollController = ScrollController()
       ..addListener(() {
@@ -114,6 +102,9 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomBar() {
+    ShapeBorder buttonBorder = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16.0),
+    );
     return AnimatedBuilder(
       animation: _selectionAnim,
       builder: (BuildContext context, Widget child) {
@@ -127,34 +118,42 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
           height: Curves.easeInOutCubic.transform(_selectionAnim.value) *
               _bottomBarHeight,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              Expanded(
-                child: IconButton(
-                  icon: Icon(
-                    Icons.cancel,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    _selectionAnim.reverse();
-                    EventModel.of(context).clearSelectedEvents();
-                  },
+              FlatButton.icon(
+                shape: buttonBorder,
+                textColor: Colors.white,
+                label: Text("Cancel"),
+                icon: Icon(
+                  Icons.cancel,
                 ),
+                onPressed: () {
+                  _selectionAnim.reverse();
+                  EventModel.of(context).clearSelectedEvents();
+                },
               ),
-              Expanded(
-                child: Transitioner(
-                  child1: Container(),
-                  animation: _bottomBarButtonAnim,
-                  child2: IconButton(
+              ScopedModelDescendant(
+                builder: (
+                  BuildContext context,
+                  Widget child,
+                  EventModel model,
+                ) {
+                  return FlatButton.icon(
+                    shape: buttonBorder,
+                    disabledTextColor: Theme.of(context).disabledColor,
+                    textColor: Colors.white,
+                    label: Text("Complete"),
                     icon: Icon(
-                      Icons.done,
-                      color: Colors.white,
+                      Icons.check_circle,
                     ),
-                    onPressed: () {
-                      _selectionAnim.reverse();
-                      _eventList.removeSelectedItems(context);
-                    },
-                  ),
-                ),
+                    onPressed: model.selectedEvents.isNotEmpty
+                        ? () {
+                            _selectionAnim.reverse();
+                            _eventList.removeSelectedItems(context);
+                          }
+                        : null,
+                  );
+                },
               ),
             ],
           ),
@@ -193,13 +192,6 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
           delegate: SliverChildListDelegate([
             ButtonBar(
               children: <Widget>[
-                IconButton(
-                  icon: Icon(
-                    Icons.search,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {},
-                ),
                 IconButton(
                   icon: Icon(
                     Icons.more_vert,
