@@ -185,6 +185,7 @@ class _AddEventRouteState extends State<AddEventRoute>
           return Transform.scale(
             scale: Curves.bounceOut.transform(_controller.value),
             child: FloatingActionButton(
+              heroTag: "Confirm",
               onPressed: () {
                 Navigator.pop(
                   context,
