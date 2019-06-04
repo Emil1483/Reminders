@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:reminders/routes/home_route.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:flutter/services.dart';
 
 import './scoped_models/event_model.dart';
 import './routes/add_event_route.dart';
 
-void main() => runApp(MyApp());
+
+void main() {
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.black,
+    ),
+  );
+  runApp(MyApp());
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -27,6 +36,7 @@ class _MyAppState extends State<MyApp> {
       model: _eventModel,
       child: MaterialApp(
         title: 'Flutter Demo',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           cardColor: Color(0x42ffffff),
           indicatorColor: Colors.deepPurpleAccent[200].withAlpha(32),

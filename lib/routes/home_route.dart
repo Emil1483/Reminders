@@ -8,7 +8,6 @@ import 'package:reminders/scoped_models/event_model.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../ui_elements/event_list.dart';
-import '../ui_elements/transitioner.dart';
 
 class HomeRoute extends StatefulWidget {
   @override
