@@ -6,7 +6,7 @@ class AboutRoute extends StatelessWidget {
     "Use an API",
     "Use git",
     "Build beutiful UI in flutter",
-    "Make stunning animations in flutter",
+    "Make unbelievably good animations in flutter",
     "Handle errors in flutter",
     "Write general purpose code",
     "Use spritewidget to build games",
@@ -32,7 +32,7 @@ class AboutRoute extends StatelessWidget {
     Widget body = Padding(
       padding: EdgeInsets.only(bottom: 24.0),
       child: Text(
-        "This app is the 2nd app of my portfolio; If you need a flutter developer, send me an email! My portfolio apps are proof that I can:",
+        "This app is the 3rd app of my portfolio; If you need a flutter developer, send me an email! My portfolio apps are proof that I can:",
         style: TextStyle(
             fontSize: 16.0,
             color: Colors.grey.shade400,
@@ -62,7 +62,7 @@ class AboutRoute extends StatelessWidget {
     );
 
     Widget text = ListView(
-      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       children: <Widget>[
         headline,
         body,
