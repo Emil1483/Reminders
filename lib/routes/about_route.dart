@@ -11,6 +11,7 @@ class AboutRoute extends StatelessWidget {
     "Write general purpose code",
     "Use spritewidget to build games",
     "Build simulations based on real physics",
+    "Use scoped model (a state management system)"
   ];
 
   @override
@@ -19,7 +20,11 @@ class AboutRoute extends StatelessWidget {
       padding: EdgeInsets.all(16.0),
       child: Text(
         "Why Does This App Exist?",
-        style: Theme.of(context).textTheme.title,
+        style: TextStyle(
+          fontSize: 32.0,
+          fontWeight: FontWeight.w300,
+          color: Colors.white,
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -28,7 +33,10 @@ class AboutRoute extends StatelessWidget {
       padding: EdgeInsets.only(bottom: 24.0),
       child: Text(
         "This app is the 2nd app of my portfolio; If you need a flutter developer, send me an email! My portfolio apps are proof that I can:",
-        style: Theme.of(context).textTheme.subtitle,
+        style: TextStyle(
+            fontSize: 16.0,
+            color: Colors.grey.shade400,
+            fontWeight: FontWeight.w400),
         textAlign: TextAlign.center,
       ),
     );
@@ -62,26 +70,21 @@ class AboutRoute extends StatelessWidget {
       ],
     );
 
-    Widget fab = Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Align(
-        alignment: Alignment.bottomRight,
-        child: FloatingActionButton(
-          backgroundColor: Theme.of(context).accentColor,
-          onPressed: () async {
-            final url = "mailto:emil14833@gmail.com";
-            if (await canLaunch(url))
-              await launch(url);
-            else
-              throw "Could not launch $url";
-          },
-          child: Icon(Icons.mail_outline),
-        ),
-      ),
+    Widget fab = FloatingActionButton(
+      backgroundColor: Theme.of(context).accentColor,
+      onPressed: () async {
+        final url = "mailto:emil14833@gmail.com";
+        if (await canLaunch(url))
+          await launch(url);
+        else
+          throw "Could not launch $url";
+      },
+      child: Icon(Icons.mail_outline),
     );
 
     return Scaffold(
       appBar: AppBar(),
+      //backgroundColor: Color(0x42ffffff),
       body: text,
       floatingActionButton: fab,
     );

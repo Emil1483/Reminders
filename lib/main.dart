@@ -76,6 +76,11 @@ class _MyAppState extends State<MyApp> {
               fontSize: 22.0,
               fontWeight: FontWeight.w400,
             ),
+            subhead: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
         ),
         routes: {
