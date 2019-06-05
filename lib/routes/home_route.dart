@@ -199,7 +199,9 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                       Icons.info,
                       color: Colors.white,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/about");
+                    },
                   ),
                 ),
               ],

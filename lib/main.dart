@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:reminders/routes/about_route.dart';
 import 'package:reminders/routes/home_route.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:flutter/services.dart';
@@ -80,6 +81,7 @@ class _MyAppState extends State<MyApp> {
         routes: {
           "/": (BuildContext context) => HomeRoute(),
           "/addEvent": (BuildContext context) => AddEventRoute(),
+          "/about": (BuildContext context) => AboutRoute(),
         },
       ),
     );
