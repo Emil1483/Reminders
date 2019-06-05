@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-class CustomFab extends StatefulWidget {
+class CustomButton extends StatefulWidget {
   final Widget child;
   final Widget mainIconFront;
   final Widget mainIconBack;
@@ -10,7 +10,7 @@ class CustomFab extends StatefulWidget {
   final Object heroTag;
   final bool shrinkChildren;
 
-  CustomFab({
+  CustomButton({
     @required this.child,
     this.mainIconFront = const Icon(Icons.more_horiz),
     this.mainIconBack = const Icon(Icons.close),
@@ -22,10 +22,10 @@ class CustomFab extends StatefulWidget {
         super(key: key);
 
   @override
-  CustomFabState createState() => CustomFabState();
+  CustomButtonState createState() => CustomButtonState();
 }
 
-class CustomFabState extends State<CustomFab> with TickerProviderStateMixin {
+class CustomButtonState extends State<CustomButton> with TickerProviderStateMixin {
   AnimationController _controller;
 
   @override
