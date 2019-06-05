@@ -220,7 +220,6 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
         return Transform.scale(
           scale: Curves.easeInOutCubic.transform(1 - _selectionAnim.value),
           child: FloatingActionButton(
-            heroTag: "Add",
             child: Icon(Icons.add),
             backgroundColor: Theme.of(context).accentColor,
             onPressed: () async {
