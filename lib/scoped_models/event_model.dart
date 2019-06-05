@@ -86,6 +86,11 @@ class EventModel extends Model {
     return id + 1;
   }
 
+  void deleteEvent(Event event) {
+    _events.remove(event);
+    notifyListeners();
+  }
+
   static EventModel of(BuildContext context) {
     return ScopedModel.of<EventModel>(context);
   }

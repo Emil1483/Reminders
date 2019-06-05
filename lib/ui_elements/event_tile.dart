@@ -8,12 +8,14 @@ import '../scoped_models/event_model.dart';
 class EventTile extends StatefulWidget {
   final Event event;
   final AnimationController animation;
+  final Function deleteEvent;
 
   static BorderRadiusGeometry borderRadius = BorderRadius.circular(22.0);
 
   EventTile({
     @required this.event,
     @required this.animation,
+    @required this.deleteEvent,
     Key key,
   })  : assert(event != null),
         assert(animation != null),
@@ -77,15 +79,21 @@ class _EventTileState extends State<EventTile>
   }
 
   void _editEvent() async {
-    final newEvent = await Navigator.pushNamed(
+    final argument = await Navigator.pushNamed(
       context,
       "/addEvent",
       arguments: widget.event,
     );
-    if (newEvent == null) return;
-    setState(() {
-      widget.event.modify(newEvent);
-    });
+    if (argument == null) return;
+    if (argument is Event) {
+      setState(() {
+        widget.event.modify(argument);
+      });
+    } else if (argument is bool) {
+      if (argument) {
+        widget.deleteEvent(widget.event);
+      }
+    }
   }
 
   void _toggleSelected() {

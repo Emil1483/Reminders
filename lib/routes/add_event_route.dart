@@ -17,6 +17,7 @@ class _AddEventRouteState extends State<AddEventRoute>
   String _eventName = "An unnamed reminder";
 
   bool _firstBuild = true;
+  bool _isEditing;
 
   static DateTime _initDate = DateTime.now().add(Duration(days: 1));
   static TimeOfDay _initTime = _roundedToHour(TimeOfDay.now());
@@ -132,41 +133,66 @@ class _AddEventRouteState extends State<AddEventRoute>
   }
 
   Widget _buildButtonBar() {
+    Widget delete = _isEditing
+        ? RaisedButton.icon(
+            icon: Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+            label: Text(
+              "Delete",
+              style: Theme.of(context).textTheme.button,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(32.0),
+            ),
+            color: Theme.of(context).errorColor,
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+          )
+        : Container();
+
+    Widget noTime = RaisedButton(
+      child: Text(
+        "No Notice",
+        style: Theme.of(context).textTheme.button,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(32.0),
+      ),
+      color: _eventDate == null
+          ? Theme.of(context).accentColor
+          : Theme.of(context).disabledColor,
+      onPressed: () {
+        setState(() {
+          _eventDate = null;
+        });
+      },
+    );
+
+    Widget time = RaisedButton(
+      child: Text(
+        "Time",
+        style: Theme.of(context).textTheme.button,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(32.0),
+      ),
+      color: _eventDate != null
+          ? Theme.of(context).accentColor
+          : Theme.of(context).disabledColor,
+      onPressed: () {
+        _setEventDate(context);
+      },
+    );
+
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: <Widget>[
-        RaisedButton(
-          child: Text(
-            "No Notice",
-            style: Theme.of(context).textTheme.button,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
-          ),
-          color: _eventDate == null
-              ? Theme.of(context).accentColor
-              : Theme.of(context).disabledColor,
-          onPressed: () {
-            setState(() {
-              _eventDate = null;
-            });
-          },
-        ),
-        RaisedButton(
-          child: Text(
-            "Time",
-            style: Theme.of(context).textTheme.button,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
-          ),
-          color: _eventDate != null
-              ? Theme.of(context).accentColor
-              : Theme.of(context).disabledColor,
-          onPressed: () {
-            _setEventDate(context);
-          },
-        ),
+        delete,
+        noTime,
+        time,
       ],
     );
   }
@@ -174,7 +200,8 @@ class _AddEventRouteState extends State<AddEventRoute>
   void _initSetEvent() {
     if (!_firstBuild) return;
     final Object args = ModalRoute.of(context).settings.arguments;
-    if (args != null && args is Event) {
+    _isEditing = args != null && args is Event;
+    if (_isEditing) {
       Event event = args;
       _eventDate = event.time;
       _eventName = event.name;
@@ -183,7 +210,7 @@ class _AddEventRouteState extends State<AddEventRoute>
         duration: Duration(),
       );
     } else {
-      Future.delayed(Duration()).then((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         _setEventDate(context);
       });
     }

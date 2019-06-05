@@ -42,6 +42,23 @@ class EventList extends StatelessWidget {
     model.completeSelectedEvents();
   }
 
+  void _removeSingleItem(BuildContext context, Event event) {
+    int index = EventModel.of(context).events.indexOf(event);
+    animatedListKey.currentState.removeItem(
+      index,
+      (BuildContext context, Animation<double> animation) {
+        return _slideOutEventTile(
+          context: context,
+          animation: animation,
+          index: index,
+          event: event,
+        );
+      },
+      duration: Duration(milliseconds: 400),
+    );
+    EventModel.of(context).deleteEvent(event);
+  }
+
   void insertItem({
     @override BuildContext context,
     @override Event event,
@@ -75,6 +92,7 @@ class EventList extends StatelessWidget {
       key: key,
       animation: controller,
       event: event,
+      deleteEvent: (Event event) {},
     );
 
     double height;
@@ -123,6 +141,8 @@ class EventList extends StatelessWidget {
                 child: EventTile(
                   event: model.events[index],
                   animation: controller,
+                  deleteEvent: (Event event) =>
+                      _removeSingleItem(context, event),
                 ),
               );
             },
