@@ -20,6 +20,7 @@ class EventList extends StatelessWidget {
         return model.events.indexOf(e);
       },
     ).toList();
+    indexes.sort();
 
     for (int i = indexes.length - 1; i >= 0; i--) {
       int index = indexes[i];
