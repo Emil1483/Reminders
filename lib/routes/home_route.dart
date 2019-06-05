@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:reminders/scoped_models/event_model.dart';
+import 'package:reminders/ui_elements/custom_fab.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../ui_elements/event_list.dart';
@@ -192,12 +193,14 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
           delegate: SliverChildListDelegate([
             ButtonBar(
               children: <Widget>[
-                IconButton(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Colors.white,
+                CustomFab(
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.info,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {},
                   ),
-                  onPressed: () {},
                 ),
               ],
             ),
