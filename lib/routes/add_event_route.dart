@@ -133,20 +133,20 @@ class _AddEventRouteState extends State<AddEventRoute>
   }
 
   Widget _buildButtonBar() {
-    Widget delete = _isEditing
+    Widget complete = _isEditing
         ? RaisedButton.icon(
             icon: Icon(
               Icons.delete,
               color: Colors.white,
             ),
             label: Text(
-              "Delete",
+              "Complete",
               style: Theme.of(context).textTheme.button,
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(32.0),
             ),
-            color: Theme.of(context).errorColor,
+            color: Theme.of(context).disabledColor,
             onPressed: () {
               Navigator.pop(context, true);
             },
@@ -190,7 +190,7 @@ class _AddEventRouteState extends State<AddEventRoute>
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: <Widget>[
-        delete,
+        complete,
         noTime,
         time,
       ],

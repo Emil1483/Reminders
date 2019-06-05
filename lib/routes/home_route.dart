@@ -142,9 +142,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                     disabledTextColor: Theme.of(context).disabledColor,
                     textColor: Colors.white,
                     label: Text("Complete"),
-                    icon: Icon(
-                      Icons.check_circle,
-                    ),
+                    icon: Icon(Icons.delete),
                     onPressed: model.selectedEvents.isNotEmpty
                         ? () {
                             _selectionAnim.reverse();
