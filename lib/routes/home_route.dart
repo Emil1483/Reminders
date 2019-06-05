@@ -177,9 +177,12 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                       : "${model.selectedEvents.length} selected";
               return FlexibleSpaceBar(
                 centerTitle: true,
-                title: Text(
-                  text,
-                  style: Theme.of(context).textTheme.headline,
+                title: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    text,
+                    style: Theme.of(context).textTheme.headline,
+                  ),
                 ),
               );
             },
