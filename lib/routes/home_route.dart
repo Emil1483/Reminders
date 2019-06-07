@@ -6,9 +6,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:reminders/scoped_models/event_model.dart';
 import 'package:reminders/ui_elements/custom_button.dart';
+import 'package:reminders/ui_elements/tapped_dialog.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../ui_elements/event_list.dart';
+import '../models/event.dart';
 
 class HomeRoute extends StatefulWidget {
   @override
@@ -30,6 +32,22 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
     _initAnimations();
     _eventList = EventList(
       controller: _selectionAnim,
+    );
+    EventModel.of(context).initializeNotifications(
+      onTappedNotification: (Event event) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return TappedDialog(
+              event: event,
+              onComplete: () {
+                if (EventModel.of(context).events.contains(event))
+                  _eventList.removeSingleItem(context, event);
+              },
+            );
+          },
+        );
+      },
     );
   }
 

@@ -7,13 +7,12 @@ import '../models/event.dart';
 class EventModel extends Model {
   FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
 
-  EventModel() {
+  void initializeNotifications({Function(Event) onTappedNotification}) {
     _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
     Future onSelectNotification(String payload) async {
-      if (payload != null) {
-        debugPrint('notification payload: ' + payload);
-      }
+      Event selectedEvent = getEventById(int.parse(payload));
+      if (onTappedNotification != null) onTappedNotification(selectedEvent);
     }
 
     Future onDidReceiveLocalNotification(
@@ -38,6 +37,13 @@ class EventModel extends Model {
   List<Event> _selectedEvents = [];
 
   List<Event> get selectedEvents => List.from(_selectedEvents);
+
+  Event getEventById(int id) {
+    for (Event event in _events) {
+      if (event.id == id) return event;
+    }
+    return null;
+  }
 
   void addToSelectedEvents(Event newEvent) {
     if (!_selectedEvents.contains(newEvent)) {
@@ -85,11 +91,25 @@ class EventModel extends Model {
     notifyListeners();
   }
 
+  void snoozeNotification(Event event) {
+    if (!_events.contains(event)) return;
+    _cancelNotification(event.id);
+    _scheduleNotification(
+      event,
+      time: DateTime.now()
+        ..add(
+          Duration(
+            seconds: 5,
+          ),
+        ),
+    );
+  }
+
   void _cancelNotification(int id) async {
     await _flutterLocalNotificationsPlugin.cancel(id);
   }
 
-  void _scheduleNotification(Event event) async {
+  void _scheduleNotification(Event event, {DateTime time}) async {
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
         'your other channel id',
         'your other channel name',
@@ -101,8 +121,10 @@ class EventModel extends Model {
       event.id,
       'Reminder',
       event.name,
-      event.time,
+      time != null ? time : DateTime.now()
+        ..add(Duration(seconds: 5)),
       platformChannelSpecifics,
+      payload: event.id.toString(),
     );
   }
 

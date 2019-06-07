@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import './scoped_models/event_model.dart';
 import './routes/add_event_route.dart';
 
-
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(

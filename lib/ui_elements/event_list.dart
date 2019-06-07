@@ -42,7 +42,7 @@ class EventList extends StatelessWidget {
     model.completeSelectedEvents();
   }
 
-  void _removeSingleItem(BuildContext context, Event event) {
+  void removeSingleItem(BuildContext context, Event event) {
     int index = EventModel.of(context).events.indexOf(event);
     animatedListKey.currentState.removeItem(
       index,
@@ -142,7 +142,7 @@ class EventList extends StatelessWidget {
                   event: model.events[index],
                   animation: controller,
                   deleteEvent: (Event event) =>
-                      _removeSingleItem(context, event),
+                      removeSingleItem(context, event),
                 ),
               );
             },
