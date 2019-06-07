@@ -42,8 +42,11 @@ class _MyAppState extends State<MyApp> {
           indicatorColor: Colors.deepPurpleAccent[200].withAlpha(32),
           primaryColor: Color(0xff303030),
           canvasColor: Color(0xff212121),
+          dialogBackgroundColor: Color(0xff212121),
           disabledColor: Color(0x42ffffff),
+          backgroundColor: Color(0xff424242),
           accentColor: Colors.deepPurpleAccent[200],
+          brightness: Brightness.dark,
           textTheme: TextTheme(
             display4: TextStyle(
               color: Colors.white,
@@ -80,6 +83,7 @@ class _MyAppState extends State<MyApp> {
               fontWeight: FontWeight.w400,
               color: Colors.white,
             ),
+            body1: TextStyle(color: Colors.white),
           ),
         ),
         routes: {
