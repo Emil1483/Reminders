@@ -34,9 +34,10 @@ class AboutRoute extends StatelessWidget {
       child: Text(
         "This app is the 3rd app of my portfolio; If you need a flutter developer, send me an email! My portfolio apps are proof that I can:",
         style: TextStyle(
-            fontSize: 16.0,
-            color: Colors.grey.shade400,
-            fontWeight: FontWeight.w400),
+          fontSize: 16.0,
+          color: Colors.grey.shade400,
+          fontWeight: FontWeight.w400,
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -84,7 +85,6 @@ class AboutRoute extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(),
-      //backgroundColor: Color(0x42ffffff),
       body: text,
       floatingActionButton: fab,
     );

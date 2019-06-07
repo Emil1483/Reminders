@@ -1,21 +1,39 @@
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:flutter/material.dart';
 
 import '../models/event.dart';
 
 class EventModel extends Model {
-  List<Event> _events = [
-    Event(
-      name: "Finish this app",
-      time: DateTime.now(),
-      id: 0,
-    ),
-    Event(
-      name: "Finish this app",
-      time: DateTime.now(),
-      id: 1,
-    ),
-  ];
+  FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
+
+  EventModel() {
+    _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    Future onSelectNotification(String payload) async {
+      if (payload != null) {
+        debugPrint('notification payload: ' + payload);
+      }
+    }
+
+    Future onDidReceiveLocalNotification(
+        int a, String b, String c, String d) async {}
+
+    var init = InitializationSettings(
+      AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      ),
+      IOSInitializationSettings(
+        onDidReceiveLocalNotification: onDidReceiveLocalNotification,
+      ),
+    );
+    _flutterLocalNotificationsPlugin.initialize(
+      init,
+      onSelectNotification: onSelectNotification,
+    );
+  }
+
+  List<Event> _events = [];
 
   List<Event> _selectedEvents = [];
 
@@ -42,15 +60,7 @@ class EventModel extends Model {
 
   void completeSelectedEvents() {
     for (Event selected in _selectedEvents) {
-      _events.remove(selected);
-    }
-    _selectedEvents.clear();
-    notifyListeners();
-  }
-
-  void deleteSelectedEvents() {
-    for (Event selected in _selectedEvents) {
-      _events.remove(selected);
+      deleteEvent(selected);
     }
     _selectedEvents.clear();
     notifyListeners();
@@ -59,14 +69,41 @@ class EventModel extends Model {
   List<Event> get events => List.from(_events);
 
   void addEvent(Event event) {
-    _events.add(
-      Event(
-        time: event.time,
-        name: event.name != null ? event.name : "",
-        id: _validNewId(event.id) ? event.id : _generateId(),
-      ),
+    Event newEvent = Event(
+      time: event.time,
+      name: event.name != null ? event.name : "",
+      id: _validNewId(event.id) ? event.id : _generateId(),
     );
+    _scheduleNotification(newEvent);
+    _events.add(newEvent);
     notifyListeners();
+  }
+
+  void deleteEvent(Event event) {
+    _cancelNotification(event.id);
+    _events.remove(event);
+    notifyListeners();
+  }
+
+  void _cancelNotification(int id) async {
+    await _flutterLocalNotificationsPlugin.cancel(id);
+  }
+
+  void _scheduleNotification(Event event) async {
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        'your other channel id',
+        'your other channel name',
+        'your other channel description');
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    NotificationDetails platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await _flutterLocalNotificationsPlugin.schedule(
+      event.id,
+      'Reminder',
+      event.name,
+      event.time,
+      platformChannelSpecifics,
+    );
   }
 
   bool _validNewId(int id) {
@@ -84,11 +121,6 @@ class EventModel extends Model {
       if (e.id > id) id = e.id;
     }
     return id + 1;
-  }
-
-  void deleteEvent(Event event) {
-    _events.remove(event);
-    notifyListeners();
   }
 
   static EventModel of(BuildContext context) {
