@@ -80,7 +80,7 @@ class EventModel extends Model {
       name: event.name != null ? event.name : "",
       id: _validNewId(event.id) ? event.id : _generateId(),
     );
-    _scheduleNotification(newEvent);
+    if (event.time != null) _scheduleNotification(newEvent);
     _events.add(newEvent);
     notifyListeners();
   }
@@ -99,7 +99,7 @@ class EventModel extends Model {
       time: DateTime.now()
         ..add(
           Duration(
-            seconds: 5,
+            minutes: 15,
           ),
         ),
     );
@@ -121,8 +121,7 @@ class EventModel extends Model {
       event.id,
       'Reminder',
       event.name,
-      time != null ? time : DateTime.now()
-        ..add(Duration(seconds: 5)),
+      time != null ? time : event.time,
       platformChannelSpecifics,
       payload: event.id.toString(),
     );
