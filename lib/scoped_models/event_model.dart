@@ -1,6 +1,11 @@
+import 'dart:io';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:scoped_model/scoped_model.dart';
-import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/event.dart';
 
@@ -74,12 +79,16 @@ class EventModel extends Model {
 
   List<Event> get events => List.from(_events);
 
-  void addEvent(Event event) {
-    Event newEvent = Event(
+  Event improved(Event event) {
+    return Event(
       time: event.time,
       name: event.name != null ? event.name : "",
       id: _validNewId(event.id) ? event.id : _generateId(),
     );
+  }
+
+  void addEvent(Event event) {
+    Event newEvent = improved(event);
     if (event.time != null) _scheduleNotification(newEvent);
     _events.add(newEvent);
     notifyListeners();
@@ -125,6 +134,12 @@ class EventModel extends Model {
       platformChannelSpecifics,
       payload: event.id.toString(),
     );
+  }
+
+  void modify(Event oldEvent, Event newEvent) {
+    int index = _events.indexOf(oldEvent);
+    _events.remove(oldEvent);
+    _events.insert(index, newEvent);
   }
 
   bool _validNewId(int id) {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class Event {
-  DateTime time;
-  String name;
-  int id;
+  final DateTime time;
+  final String name;
+  final int id;
 
   Event({
     @required this.name,
@@ -11,8 +11,11 @@ class Event {
     this.id,
   }) : assert(name != null);
 
-  void modify(Event newEvent) {
-    time = newEvent.time;
-    name = newEvent.name;
+  factory Event.fromJson(Map<String, dynamic> parsedJson) {
+    return Event(
+      name: parsedJson["name"],
+      id: parsedJson["id"],
+      time: parsedJson["time"],
+    );
   }
 }

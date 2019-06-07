@@ -87,7 +87,12 @@ class _EventTileState extends State<EventTile>
     if (argument == null) return;
     if (argument is Event) {
       setState(() {
-        widget.event.modify(argument);
+        EventModel model = EventModel.of(context);
+
+        model.modify(
+          widget.event,
+          model.improved(argument),
+        );
       });
     } else if (argument is bool) {
       if (argument) {
