@@ -58,7 +58,7 @@ class _AddEventRouteState extends State<AddEventRoute>
   Future<DateTime> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
       context: context,
-      initialDate: _initDate,
+      initialDate: _eventDate != null ? _eventDate : _initDate,
       firstDate: _flooredToDay(DateTime.now()),
       lastDate: DateTime(DateTime.now().year + 100),
     );
@@ -68,7 +68,8 @@ class _AddEventRouteState extends State<AddEventRoute>
   Future<TimeOfDay> _selectTime(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: _initTime,
+      initialTime:
+          _eventDate != null ? TimeOfDay.fromDateTime(_eventDate) : _initTime,
     );
     return picked;
   }
