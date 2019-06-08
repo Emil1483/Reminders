@@ -11,11 +11,35 @@ class Event {
     this.id,
   }) : assert(name != null);
 
-  factory Event.fromJson(Map<String, dynamic> parsedJson) {
-    return Event(
-      name: parsedJson["name"],
-      id: parsedJson["id"],
-      time: parsedJson["time"],
+  static List<Event> listFromJson(Map<String, dynamic> json) {
+    List<Event> events = [];
+    json.forEach(
+      (String id, dynamic map) {
+        events.add(
+          Event(
+            id: int.parse(id),
+            name: map["name"],
+            time: map["time"] == "-1" ? null : DateTime.parse(map["time"]),
+          ),
+        );
+      },
     );
+    return events;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      id.toString(): {
+        "name": name,
+        "time": time != null ? time.toString() : "-1",
+      },
+    };
+  }
+
+  Map<String, dynamic> toPartJson() {
+    return {
+      "name": name,
+      "time": time.toString(),
+    };
   }
 }

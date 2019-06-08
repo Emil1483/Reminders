@@ -127,6 +127,7 @@ class EventList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScopedModelDescendant(
       builder: (BuildContext context, Widget child, EventModel model) {
+        if (model.isLoading) return Container();
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: AnimatedList(

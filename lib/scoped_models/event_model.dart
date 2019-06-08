@@ -1,11 +1,11 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
 
 import '../models/event.dart';
 
@@ -38,10 +38,71 @@ class EventModel extends Model {
   }
 
   List<Event> _events = [];
-
   List<Event> _selectedEvents = [];
+  List<Event> _deadEvents = [];
+  bool _killingEvents = false;
+  bool _isLoading = true;
+
+  EventModel() {
+    _loadEvents();
+  }
 
   List<Event> get selectedEvents => List.from(_selectedEvents);
+
+  bool get isLoading => _isLoading;
+
+  Future<File> _getFile() async {
+    final Directory dir = await getApplicationDocumentsDirectory();
+    return File("${dir.path}/events.json");
+  }
+
+  void _loadEvents() async {
+    File file = await _getFile();
+    try {
+      String jsonString = await file.readAsString();
+      Map<String, dynamic> data = json.decode(jsonString);
+      print(jsonString);
+      _events = Event.listFromJson(data);
+    } catch (e) {
+      file.writeAsString(json.encode({}));
+    }
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  void _uploadEvent(Event event) async {
+    final File file = await _getFile();
+    final String jsonString = await file.readAsString();
+    Map<String, dynamic> data = json.decode(jsonString);
+    data.addAll(event.toJson());
+    await file.writeAsString(json.encode(data));
+  }
+
+  void _updateEventInJson(Event event) async {
+    final File file = await _getFile();
+    final String jsonString = await file.readAsString();
+    Map<String, dynamic> data = json.decode(jsonString);
+    data[event.id.toString()] = event.toPartJson();
+    await file.writeAsString(json.encode(data));
+  }
+
+  void _deleteEventInJson(Event event) async {
+    if (_killingEvents) {
+      _deadEvents.add(event);
+      return;
+    }
+    _killingEvents = true;
+    final File file = await _getFile();
+    final String jsonString = await file.readAsString();
+    Map<String, dynamic> data = json.decode(jsonString);
+    data.remove(event.id.toString());
+    await file.writeAsString(json.encode(data));
+    _killingEvents = false;
+    if (_deadEvents.length > 0) {
+      _deleteEventInJson(_deadEvents[0]);
+      _deadEvents.removeAt(0);
+    }
+  }
 
   Event getEventById(int id) {
     for (Event event in _events) {
@@ -70,7 +131,15 @@ class EventModel extends Model {
   }
 
   void completeSelectedEvents() {
-    for (Event selected in _selectedEvents) {
+    List<int> indexes = _selectedEvents.map(
+      (Event e) {
+        return _events.indexOf(e);
+      },
+    ).toList();
+
+    indexes.sort();
+    for (int i = indexes.length - 1; i >= 0; i--) {
+      Event selected = _events[i];
       deleteEvent(selected);
     }
     _selectedEvents.clear();
@@ -92,10 +161,12 @@ class EventModel extends Model {
     if (event.time != null) _scheduleNotification(newEvent);
     _events.add(newEvent);
     notifyListeners();
+    _uploadEvent(newEvent);
   }
 
   void deleteEvent(Event event) {
     _cancelNotification(event.id);
+    _deleteEventInJson(event);
     _events.remove(event);
     notifyListeners();
   }
@@ -140,6 +211,7 @@ class EventModel extends Model {
     int index = _events.indexOf(oldEvent);
     _events.remove(oldEvent);
     _events.insert(index, newEvent);
+    _updateEventInJson(newEvent);
   }
 
   bool _validNewId(int id) {
