@@ -34,9 +34,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    print(state);
     if (state == AppLifecycleState.paused) {
-      print("saving Data");
       _eventModel.saveData();
     }
   }
@@ -52,7 +50,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return ScopedModel<EventModel>(
       model: _eventModel,
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Reminder',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           cardColor: Color(0x42ffffff),

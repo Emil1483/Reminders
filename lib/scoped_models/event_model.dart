@@ -25,7 +25,7 @@ class EventModel extends Model {
 
     var init = InitializationSettings(
       AndroidInitializationSettings(
-        '@mipmap/ic_launcher',
+        'app_icon',
       ),
       IOSInitializationSettings(
         onDidReceiveLocalNotification: onDidReceiveLocalNotification,
@@ -147,14 +147,10 @@ class EventModel extends Model {
   void snoozeNotification(Event event) {
     if (!_events.contains(event)) return;
     _cancelNotification(event.id);
+    DateTime newTime = DateTime.now().add(Duration(minutes: 15));
     _scheduleNotification(
       event,
-      time: DateTime.now()
-        ..add(
-          Duration(
-            minutes: 15,
-          ),
-        ),
+      time: newTime,
     );
   }
 
