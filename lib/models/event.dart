@@ -11,6 +11,11 @@ class Event {
     this.id,
   }) : assert(name != null);
 
+  @override
+  String toString() {
+    return "time: $time, name: $name, id: $id";
+  }
+
   static List<Event> listFromJson(Map<String, dynamic> json) {
     List<Event> events = [];
     json.forEach(

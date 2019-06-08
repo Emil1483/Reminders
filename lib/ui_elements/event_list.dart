@@ -93,6 +93,7 @@ class EventList extends StatelessWidget {
       animation: controller,
       event: event,
       deleteEvent: (Event event) {},
+      iconAnimationValue: 1.0,
     );
 
     double height;

@@ -64,6 +64,13 @@ class EventModel extends Model {
       file.writeAsString(json.encode({}));
     }
     _isLoading = false;
+    _events = [
+      Event(name: "a", id: 0),
+      Event(name: "b", id: 1),
+      Event(name: "c", id: 2),
+      Event(name: "d", id: 3),
+      Event(name: "e", id: 4),
+    ];
     notifyListeners();
   }
 
@@ -86,6 +93,13 @@ class EventModel extends Model {
     return null;
   }
 
+  void printEvents() {
+    for (int i = 0; i < _events.length; i++) {
+      Event event = _events[i];
+      print("index: $i, ${event.toString()}");
+    }
+  }
+
   void addToSelectedEvents(Event newEvent) {
     if (!_selectedEvents.contains(newEvent)) {
       _selectedEvents.add(newEvent);
@@ -106,17 +120,7 @@ class EventModel extends Model {
   }
 
   void completeSelectedEvents() {
-    List<int> indexes = _selectedEvents.map(
-      (Event e) {
-        return _events.indexOf(e);
-      },
-    ).toList();
-
-    indexes.sort();
-    for (int i = indexes.length - 1; i >= 0; i--) {
-      Event selected = _events[i];
-      deleteEvent(selected);
-    }
+    for (Event event in _selectedEvents) _events.remove(event);
     _selectedEvents.clear();
     notifyListeners();
   }

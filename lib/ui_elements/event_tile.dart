@@ -9,6 +9,7 @@ class EventTile extends StatefulWidget {
   final Event event;
   final AnimationController animation;
   final Function deleteEvent;
+  final double iconAnimationValue;
 
   static BorderRadiusGeometry borderRadius = BorderRadius.circular(22.0);
 
@@ -16,6 +17,7 @@ class EventTile extends StatefulWidget {
     @required this.event,
     @required this.animation,
     @required this.deleteEvent,
+    this.iconAnimationValue = 0,
     Key key,
   })  : assert(event != null),
         assert(animation != null),
@@ -37,6 +39,7 @@ class _EventTileState extends State<EventTile>
       duration: Duration(
         milliseconds: 500,
       ),
+      value: widget.iconAnimationValue,
     );
     widget.animation.addListener(_listener);
   }
