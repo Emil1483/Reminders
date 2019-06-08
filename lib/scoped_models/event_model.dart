@@ -113,7 +113,7 @@ class EventModel extends Model {
   }
 
   void completeSelectedEvents() {
-    for (Event event in _selectedEvents) _events.remove(event);
+    for (Event event in _selectedEvents) deleteEvent(event);
     _selectedEvents.clear();
     notifyListeners();
   }
