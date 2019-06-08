@@ -91,7 +91,11 @@ class _EventTileState extends State<EventTile>
 
         model.modify(
           widget.event,
-          model.improved(argument),
+          Event(
+            name: argument.name,
+            id: widget.event.id,
+            time: argument.time,
+          ),
         );
       });
     } else if (argument is bool) {

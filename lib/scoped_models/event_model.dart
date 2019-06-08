@@ -12,12 +12,12 @@ import '../models/event.dart';
 class EventModel extends Model {
   FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
 
-  void initializeNotifications({Function(Event) onTappedNotification}) {
+  void initializeNotifications({Function(int) onTappedNotification}) {
     _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
     Future onSelectNotification(String payload) async {
-      Event selectedEvent = getEventById(int.parse(payload));
-      if (onTappedNotification != null) onTappedNotification(selectedEvent);
+      int selectedEventId = int.parse(payload);
+      if (onTappedNotification != null) onTappedNotification(selectedEventId);
     }
 
     Future onDidReceiveLocalNotification(
@@ -83,6 +83,7 @@ class EventModel extends Model {
     final String jsonString = await file.readAsString();
     Map<String, dynamic> data = json.decode(jsonString);
     data[event.id.toString()] = event.toPartJson();
+    print(data);
     await file.writeAsString(json.encode(data));
   }
 
@@ -148,11 +149,11 @@ class EventModel extends Model {
 
   List<Event> get events => List.from(_events);
 
-  Event improved(Event event) {
+  Event improved(Event event, {bool keepId = false}) {
     return Event(
       time: event.time,
       name: event.name != null ? event.name : "",
-      id: _validNewId(event.id) ? event.id : _generateId(),
+      id: keepId ? event.id : _validNewId(event.id) ? event.id : _generateId(),
     );
   }
 
@@ -211,6 +212,8 @@ class EventModel extends Model {
     int index = _events.indexOf(oldEvent);
     _events.remove(oldEvent);
     _events.insert(index, newEvent);
+    if (oldEvent.time != null) _cancelNotification(oldEvent.id);
+    if (newEvent.time != null) _scheduleNotification(newEvent);
     _updateEventInJson(newEvent);
   }
 

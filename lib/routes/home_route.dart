@@ -34,13 +34,14 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
       controller: _selectionAnim,
     );
     EventModel.of(context).initializeNotifications(
-      onTappedNotification: (Event event) {
+      onTappedNotification: (int eventId) {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return TappedDialog(
-              event: event,
+              eventId: eventId,
               onComplete: () {
+                Event event = EventModel.of(context).getEventById(eventId);
                 if (EventModel.of(context).events.contains(event))
                   _eventList.removeSingleItem(context, event);
               },
