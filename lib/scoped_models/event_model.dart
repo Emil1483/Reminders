@@ -68,6 +68,9 @@ class EventModel extends Model {
   }
 
   void saveData() async {
+    while (_isLoading) {
+      await Future.delayed(Duration(milliseconds: 10));
+    }
     final File file = await _getFile();
     Map<String, dynamic> data = {};
     for (Event event in _events) {
