@@ -39,8 +39,6 @@ class EventModel extends Model {
 
   List<Event> _events = [];
   List<Event> _selectedEvents = [];
-  List<Event> _deadEvents = [];
-  bool _killingEvents = false;
   bool _isLoading = true;
 
   EventModel() {
@@ -61,7 +59,6 @@ class EventModel extends Model {
     try {
       String jsonString = await file.readAsString();
       Map<String, dynamic> data = json.decode(jsonString);
-      print(jsonString);
       _events = Event.listFromJson(data);
     } catch (e) {
       file.writeAsString(json.encode({}));
@@ -70,39 +67,13 @@ class EventModel extends Model {
     notifyListeners();
   }
 
-  void _uploadEvent(Event event) async {
+  void saveData() async {
     final File file = await _getFile();
-    final String jsonString = await file.readAsString();
-    Map<String, dynamic> data = json.decode(jsonString);
-    data.addAll(event.toJson());
-    await file.writeAsString(json.encode(data));
-  }
-
-  void _updateEventInJson(Event event) async {
-    final File file = await _getFile();
-    final String jsonString = await file.readAsString();
-    Map<String, dynamic> data = json.decode(jsonString);
-    data[event.id.toString()] = event.toPartJson();
-    print(data);
-    await file.writeAsString(json.encode(data));
-  }
-
-  void _deleteEventInJson(Event event) async {
-    if (_killingEvents) {
-      _deadEvents.add(event);
-      return;
+    Map<String, dynamic> data = {};
+    for (Event event in _events) {
+      data.addAll(event.toJson());
     }
-    _killingEvents = true;
-    final File file = await _getFile();
-    final String jsonString = await file.readAsString();
-    Map<String, dynamic> data = json.decode(jsonString);
-    data.remove(event.id.toString());
     await file.writeAsString(json.encode(data));
-    _killingEvents = false;
-    if (_deadEvents.length > 0) {
-      _deleteEventInJson(_deadEvents[0]);
-      _deadEvents.removeAt(0);
-    }
   }
 
   Event getEventById(int id) {
@@ -162,12 +133,10 @@ class EventModel extends Model {
     if (event.time != null) _scheduleNotification(newEvent);
     _events.add(newEvent);
     notifyListeners();
-    _uploadEvent(newEvent);
   }
 
   void deleteEvent(Event event) {
     _cancelNotification(event.id);
-    _deleteEventInJson(event);
     _events.remove(event);
     notifyListeners();
   }
@@ -214,7 +183,6 @@ class EventModel extends Model {
     _events.insert(index, newEvent);
     if (oldEvent.time != null) _cancelNotification(oldEvent.id);
     if (newEvent.time != null) _scheduleNotification(newEvent);
-    _updateEventInJson(newEvent);
   }
 
   bool _validNewId(int id) {
