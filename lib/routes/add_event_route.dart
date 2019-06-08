@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:keyboard_visibility/keyboard_visibility.dart';
 
 import '../models/event.dart';
 import '../utils/time_utils.dart';
@@ -18,6 +20,8 @@ class _AddEventRouteState extends State<AddEventRoute>
 
   bool _firstBuild = true;
   bool _isEditing;
+  bool _keyboardIsVisible = false;
+  bool _pickTimeWhenKeyboardIsDown = false;
 
   static DateTime _initDate = DateTime.now().add(Duration(days: 1));
   static TimeOfDay _initTime = _roundedToHour(TimeOfDay.now());
@@ -32,6 +36,15 @@ class _AddEventRouteState extends State<AddEventRoute>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _firstBuild = false;
     });
+    KeyboardVisibilityNotification().addNewListener(
+      onChange: (bool visible) {
+        _keyboardIsVisible = visible;
+        if (_pickTimeWhenKeyboardIsDown) {
+          _pickTimeWhenKeyboardIsDown = false;
+          _setEventDate(context);
+        }
+      },
+    );
   }
 
   dispose() {
@@ -74,8 +87,12 @@ class _AddEventRouteState extends State<AddEventRoute>
     return picked;
   }
 
-  Future<Null> _setEventDate(BuildContext context,
-      {bool shouldSetState = true}) async {
+  Future<Null> _setEventDate(BuildContext context) async {
+    if (_keyboardIsVisible) {
+      FocusScope.of(context).requestFocus(new FocusNode());
+      _pickTimeWhenKeyboardIsDown = true;
+      return;
+    }
     DateTime date = await _selectDate(context);
     if (date == null) {
       _controller.forward();
