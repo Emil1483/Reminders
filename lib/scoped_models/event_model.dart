@@ -64,13 +64,6 @@ class EventModel extends Model {
       file.writeAsString(json.encode({}));
     }
     _isLoading = false;
-    _events = [
-      Event(name: "a", id: 0),
-      Event(name: "b", id: 1),
-      Event(name: "c", id: 2),
-      Event(name: "d", id: 3),
-      Event(name: "e", id: 4),
-    ];
     notifyListeners();
   }
 
