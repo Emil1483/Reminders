@@ -61,6 +61,7 @@ class _EventTileState extends State<EventTile>
   }
 
   void _onLongPress() {
+    if (widget.dying) return;
     if (widget.animation.value < 0.5) {
       widget.animation.forward();
       _iconAnimation.animateTo(
@@ -74,6 +75,7 @@ class _EventTileState extends State<EventTile>
   }
 
   void _onTap() {
+    if (widget.dying) return;
     if (widget.animation.value > 0.5) {
       _toggleSelected();
     } else {

@@ -110,7 +110,7 @@ class EventList extends StatelessWidget {
     return AnimatedBuilder(
       animation: animation,
       builder: (BuildContext context, Widget child) {
-        double value1 = Curves.easeIn.transform(
+        double value1 = Curves.easeInBack.transform(
           math.min(1, 2 - animation.value * 2),
         );
         double value2 = Curves.easeInOutCubic.transform(
