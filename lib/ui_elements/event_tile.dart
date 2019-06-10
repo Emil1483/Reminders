@@ -9,18 +9,18 @@ class EventTile extends StatefulWidget {
   final Event event;
   final AnimationController animation;
   final Function deleteEvent;
-  final double iconAnimationValue;
+  final bool dying;
 
   static BorderRadiusGeometry borderRadius = BorderRadius.circular(22.0);
 
   EventTile({
     @required this.event,
-    @required this.animation,
     @required this.deleteEvent,
-    this.iconAnimationValue = 0,
+    this.animation,
+    this.dying = false,
     Key key,
   })  : assert(event != null),
-        assert(animation != null),
+        assert(animation != null || dying),
         super(key: key);
 
   @override
@@ -39,7 +39,7 @@ class _EventTileState extends State<EventTile>
       duration: Duration(
         milliseconds: 500,
       ),
-      value: widget.iconAnimationValue,
+      value: 0,
     );
     widget.animation.addListener(_listener);
   }
@@ -133,26 +133,35 @@ class _EventTileState extends State<EventTile>
     return AnimatedBuilder(
       animation: widget.animation,
       builder: (BuildContext context, Widget child) {
+        final double iconWidth = widget.dying
+            ? 50.0
+            : Curves.easeInOutCubic.transform(animation.value) * 50;
+
         Widget icon = Expanded(
           flex: 0,
           child: Container(
             alignment: Alignment.centerLeft,
-            width: Curves.easeInOutCubic.transform(animation.value) * 50,
-            child: ScaleTransition(
-              alignment: Alignment.center,
-              scale: animation,
-              child: Transitioner(
-                child1: Icon(
-                  Icons.check_circle_outline,
-                  color: Theme.of(context).accentColor,
-                ),
-                child2: Icon(
-                  Icons.check_circle,
-                  color: Theme.of(context).accentColor,
-                ),
-                animation: _iconAnimation,
-              ),
-            ),
+            width: iconWidth,
+            child: widget.dying
+                ? Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).accentColor,
+                  )
+                : ScaleTransition(
+                    alignment: Alignment.center,
+                    scale: animation,
+                    child: Transitioner(
+                      child1: Icon(
+                        Icons.check_circle_outline,
+                        color: Theme.of(context).accentColor,
+                      ),
+                      child2: Icon(
+                        Icons.check_circle,
+                        color: Theme.of(context).accentColor,
+                      ),
+                      animation: _iconAnimation,
+                    ),
+                  ),
           ),
         );
 
@@ -181,11 +190,13 @@ class _EventTileState extends State<EventTile>
           margin: EdgeInsets.only(bottom: 8.0),
           decoration: BoxDecoration(
             borderRadius: EventTile.borderRadius,
-            color: Color.lerp(
-              Theme.of(context).cardColor,
-              Theme.of(context).indicatorColor,
-              Curves.easeInOutCubic.transform(animation.value),
-            ),
+            color: widget.dying
+                ? Theme.of(context).indicatorColor
+                : Color.lerp(
+                    Theme.of(context).cardColor,
+                    Theme.of(context).indicatorColor,
+                    Curves.easeInOutCubic.transform(animation.value),
+                  ),
           ),
           child: InkWell(
             borderRadius: EventTile.borderRadius,

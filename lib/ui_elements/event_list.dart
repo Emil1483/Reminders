@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 
@@ -8,6 +10,7 @@ import '../scoped_models/event_model.dart';
 class EventList extends StatelessWidget {
   final AnimationController controller;
   final animatedListKey = GlobalKey<AnimatedListState>();
+  final Duration _slideOutDuration = Duration(milliseconds: 800);
 
   EventList({
     @required this.controller,
@@ -35,7 +38,7 @@ class EventList extends StatelessWidget {
             event: event,
           );
         },
-        duration: Duration(milliseconds: 400),
+        duration: _slideOutDuration,
       );
     }
 
@@ -54,7 +57,7 @@ class EventList extends StatelessWidget {
           event: event,
         );
       },
-      duration: Duration(milliseconds: 400),
+      duration: _slideOutDuration,
     );
     EventModel.of(context).deleteEvent(event);
   }
@@ -93,7 +96,7 @@ class EventList extends StatelessWidget {
       animation: controller,
       event: event,
       deleteEvent: (Event event) {},
-      iconAnimationValue: 1.0,
+      dying: true,
     );
 
     double height;
@@ -104,23 +107,28 @@ class EventList extends StatelessWidget {
       },
     );
 
-    return SlideTransition(
-      position: _getPosition(animation),
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (BuildContext context, Widget child) {
-          double value = Curves.easeInOutCubic.transform(animation.value);
-          return Container(
-            height: height != null ? value * height : null,
-            child: SingleChildScrollView(
-              child: Transform(
-                transform: Matrix4.identity()..scale(1.0, value, 1.0),
-                child: eventTile,
-              ),
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (BuildContext context, Widget child) {
+        double value1 = Curves.easeIn.transform(
+          math.min(1, 2 - animation.value * 2),
+        );
+        double value2 = Curves.easeInOutCubic.transform(
+          math.max(0, 1 - animation.value * 2),
+        );
+        return Container(
+          height: height != null ? (1 - value2) * height : null,
+          child: SingleChildScrollView(
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translate(
+                  value1 * MediaQuery.of(context).size.width,
+                ),
+              child: eventTile,
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
