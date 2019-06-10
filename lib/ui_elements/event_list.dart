@@ -36,6 +36,7 @@ class EventList extends StatelessWidget {
             animation: animation,
             index: index,
             event: event,
+            selected: true,
           );
         },
         duration: _slideOutDuration,
@@ -55,6 +56,7 @@ class EventList extends StatelessWidget {
           animation: animation,
           index: index,
           event: event,
+          selected: false,
         );
       },
       duration: _slideOutDuration,
@@ -89,6 +91,7 @@ class EventList extends StatelessWidget {
     @required Animation<double> animation,
     @required int index,
     @required Event event,
+    @required bool selected,
   }) {
     GlobalKey key = GlobalKey();
     EventTile eventTile = EventTile(
@@ -97,6 +100,7 @@ class EventList extends StatelessWidget {
       event: event,
       deleteEvent: (Event event) {},
       dying: true,
+      selected: selected,
     );
 
     double height;

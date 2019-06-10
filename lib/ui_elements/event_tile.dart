@@ -10,12 +10,14 @@ class EventTile extends StatefulWidget {
   final AnimationController animation;
   final Function deleteEvent;
   final bool dying;
+  final bool selected;
 
   static BorderRadiusGeometry borderRadius = BorderRadius.circular(22.0);
 
   EventTile({
     @required this.event,
     @required this.deleteEvent,
+    this.selected = false,
     this.animation,
     this.dying = false,
     Key key,
@@ -135,7 +137,7 @@ class _EventTileState extends State<EventTile>
     return AnimatedBuilder(
       animation: widget.animation,
       builder: (BuildContext context, Widget child) {
-        final double iconWidth = widget.dying
+        final double iconWidth = widget.selected
             ? 50.0
             : Curves.easeInOutCubic.transform(animation.value) * 50;
 
@@ -144,7 +146,7 @@ class _EventTileState extends State<EventTile>
           child: Container(
             alignment: Alignment.centerLeft,
             width: iconWidth,
-            child: widget.dying
+            child: widget.selected
                 ? Icon(
                     Icons.check_circle,
                     color: Theme.of(context).accentColor,
@@ -192,7 +194,7 @@ class _EventTileState extends State<EventTile>
           margin: EdgeInsets.only(bottom: 8.0),
           decoration: BoxDecoration(
             borderRadius: EventTile.borderRadius,
-            color: widget.dying
+            color: widget.selected
                 ? Theme.of(context).indicatorColor
                 : Color.lerp(
                     Theme.of(context).cardColor,
