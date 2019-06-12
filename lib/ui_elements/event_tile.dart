@@ -26,10 +26,10 @@ class EventTile extends StatefulWidget {
         super(key: key);
 
   @override
-  EventTileState createState() => EventTileState();
+  _EventTileState createState() => _EventTileState();
 }
 
-class EventTileState extends State<EventTile>
+class _EventTileState extends State<EventTile>
     with SingleTickerProviderStateMixin {
   AnimationController _iconAnimation;
 
