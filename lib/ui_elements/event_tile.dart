@@ -129,10 +129,6 @@ class _EventTileState extends State<EventTile>
     EventModel.of(context).addToSelectedEvents(widget.event);
   }
 
-  double get height {
-    return context.size.height;
-  }
-
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
