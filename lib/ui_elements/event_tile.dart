@@ -8,15 +8,21 @@ import '../scoped_models/event_model.dart';
 class EventTile extends StatefulWidget {
   final Event event;
   final AnimationController animation;
+  final Function deleteEvent;
+  final bool dying;
+  final bool selected;
 
   static BorderRadiusGeometry borderRadius = BorderRadius.circular(22.0);
 
   EventTile({
     @required this.event,
-    @required this.animation,
+    @required this.deleteEvent,
+    this.selected = false,
+    this.animation,
+    this.dying = false,
     Key key,
   })  : assert(event != null),
-        assert(animation != null),
+        assert(animation != null || dying),
         super(key: key);
 
   @override
@@ -35,6 +41,7 @@ class EventTileState extends State<EventTile>
       duration: Duration(
         milliseconds: 500,
       ),
+      value: 0,
     );
     widget.animation.addListener(_listener);
   }
@@ -56,6 +63,7 @@ class EventTileState extends State<EventTile>
   }
 
   void _onLongPress() {
+    if (widget.dying) return;
     if (widget.animation.value < 0.5) {
       widget.animation.forward();
       _iconAnimation.animateTo(
@@ -69,8 +77,38 @@ class EventTileState extends State<EventTile>
   }
 
   void _onTap() {
+    if (widget.dying) return;
     if (widget.animation.value > 0.5) {
       _toggleSelected();
+    } else {
+      _editEvent();
+    }
+  }
+
+  void _editEvent() async {
+    final argument = await Navigator.pushNamed(
+      context,
+      "/addEvent",
+      arguments: widget.event,
+    );
+    if (argument == null) return;
+    if (argument is Event) {
+      setState(() {
+        EventModel model = EventModel.of(context);
+
+        model.modify(
+          widget.event,
+          Event(
+            name: argument.name,
+            id: widget.event.id,
+            time: argument.time,
+          ),
+        );
+      });
+    } else if (argument is bool) {
+      if (argument) {
+        widget.deleteEvent(widget.event);
+      }
     }
   }
 
@@ -103,16 +141,70 @@ class EventTileState extends State<EventTile>
     return AnimatedBuilder(
       animation: widget.animation,
       builder: (BuildContext context, Widget child) {
+        final double iconWidth = widget.selected
+            ? 50.0
+            : Curves.easeInOutCubic.transform(animation.value) * 50;
+
+        Widget icon = Expanded(
+          flex: 0,
+          child: Container(
+            alignment: Alignment.centerLeft,
+            width: iconWidth,
+            child: widget.selected
+                ? Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).accentColor,
+                  )
+                : ScaleTransition(
+                    alignment: Alignment.center,
+                    scale: animation,
+                    child: Transitioner(
+                      child1: Icon(
+                        Icons.check_circle_outline,
+                        color: Theme.of(context).accentColor,
+                      ),
+                      child2: Icon(
+                        Icons.check_circle,
+                        color: Theme.of(context).accentColor,
+                      ),
+                      animation: _iconAnimation,
+                    ),
+                  ),
+          ),
+        );
+
+        Widget text = Expanded(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                widget.event.name,
+                style: textTheme.title,
+              ),
+              SizedBox(height: 4.0),
+              widget.event.time != null
+                  ? Text(
+                      timeToString(widget.event.time),
+                      style: textTheme.subtitle,
+                    )
+                  : Container(),
+            ],
+          ),
+        );
+
         return Container(
           margin: EdgeInsets.only(bottom: 8.0),
           decoration: BoxDecoration(
             borderRadius: EventTile.borderRadius,
-            color: Color.lerp(
-              Theme.of(context).cardColor,
-              Theme.of(context).indicatorColor,
-              Curves.easeInOutCubic
-                  .transform(Curves.easeInOutCubic.transform(animation.value)),
-            ),
+            color: widget.selected
+                ? Theme.of(context).indicatorColor
+                : Color.lerp(
+                    Theme.of(context).cardColor,
+                    Theme.of(context).indicatorColor,
+                    Curves.easeInOutCubic.transform(animation.value),
+                  ),
           ),
           child: InkWell(
             borderRadius: EventTile.borderRadius,
@@ -122,49 +214,8 @@ class EventTileState extends State<EventTile>
               padding: EdgeInsets.symmetric(horizontal: 32.0, vertical: 22.0),
               child: Row(
                 children: <Widget>[
-                  Expanded(
-                    flex: 0,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      width:
-                          Curves.easeInOutCubic.transform(animation.value) * 50,
-                      child: ScaleTransition(
-                        alignment: Alignment.center,
-                        scale: animation,
-                        child: Transitioner(
-                          child1: Icon(
-                            Icons.check_circle_outline,
-                            color: Theme.of(context).accentColor,
-                          ),
-                          child2: Icon(
-                            Icons.check_circle,
-                            color: Theme.of(context).accentColor,
-                          ),
-                          animation: _iconAnimation,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          widget.event.name,
-                          style: textTheme.title,
-                        ),
-                        SizedBox(height: 4.0),
-                        widget.event.time != null
-                            ? Text(
-                                timeToString(widget.event.time),
-                                style: textTheme.subtitle,
-                              )
-                            : Container(),
-                      ],
-                    ),
-                  ),
+                  icon,
+                  text,
                 ],
               ),
             ),

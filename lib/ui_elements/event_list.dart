@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 
@@ -8,9 +10,7 @@ import '../scoped_models/event_model.dart';
 class EventList extends StatelessWidget {
   final AnimationController controller;
   final animatedListKey = GlobalKey<AnimatedListState>();
-  static Duration _dismissedDuration = Duration(milliseconds: 400);
-
-  final List<GlobalKey<EventTileState>> _eventTileKeys = [];
+  final Duration _slideOutDuration = Duration(milliseconds: 800);
 
   EventList({
     @required this.controller,
@@ -23,11 +23,11 @@ class EventList extends StatelessWidget {
         return model.events.indexOf(e);
       },
     ).toList();
+    indexes.sort();
 
     for (int i = indexes.length - 1; i >= 0; i--) {
       int index = indexes[i];
-      print(index);
-
+      Event event = model.events[index];
       animatedListKey.currentState.removeItem(
         index,
         (BuildContext context, Animation<double> animation) {
@@ -35,13 +35,33 @@ class EventList extends StatelessWidget {
             context: context,
             animation: animation,
             index: index,
+            event: event,
+            selected: true,
           );
         },
-        duration: _dismissedDuration,
+        duration: _slideOutDuration,
       );
     }
 
     model.completeSelectedEvents();
+  }
+
+  void removeSingleItem(BuildContext context, Event event) {
+    int index = EventModel.of(context).events.indexOf(event);
+    animatedListKey.currentState.removeItem(
+      index,
+      (BuildContext context, Animation<double> animation) {
+        return _slideOutEventTile(
+          context: context,
+          animation: animation,
+          index: index,
+          event: event,
+          selected: false,
+        );
+      },
+      duration: _slideOutDuration,
+    );
+    EventModel.of(context).deleteEvent(event);
   }
 
   void insertItem({
@@ -55,7 +75,7 @@ class EventList extends StatelessWidget {
 
   Animation<Offset> _getPosition(Animation<double> animation) {
     return Tween<Offset>(
-      begin: Offset(1.1, 0),
+      begin: Offset(1, 0),
       end: Offset.zero,
     )
         .chain(
@@ -67,41 +87,60 @@ class EventList extends StatelessWidget {
   }
 
   Widget _slideOutEventTile({
-    BuildContext context,
-    Animation<double> animation,
-    int index,
+    @required BuildContext context,
+    @required Animation<double> animation,
+    @required int index,
+    @required Event event,
+    @required bool selected,
   }) {
-    print(index);
+    GlobalKey key = GlobalKey();
     EventTile eventTile = EventTile(
+      key: key,
       animation: controller,
-      event: EventModel.of(context).events[index],
+      event: event,
+      deleteEvent: (Event event) {},
+      dying: true,
+      selected: selected,
     );
-    return SlideTransition(
-      position: _getPosition(animation),
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (BuildContext context, Widget child) {
-          double value = Curves.easeInOutCubic.transform(animation.value);
-          return Container(
-            height: value * 100.0,
-            child: SingleChildScrollView(
-              child: Transform(
-                transform: Matrix4.identity()..scale(1.0, value, 1.0),
-                child: eventTile,
-              ),
+
+    double height;
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        final RenderBox renderBox = key.currentContext.findRenderObject();
+        height = renderBox.size.height;
+      },
+    );
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (BuildContext context, Widget child) {
+        double value1 = Curves.easeInBack.transform(
+          math.min(1, 2 - animation.value * 2),
+        );
+        double value2 = Curves.easeInOutCubic.transform(
+          math.max(0, 1 - animation.value * 2),
+        );
+        return Container(
+          height: height != null ? (1 - value2) * height : null,
+          child: SingleChildScrollView(
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translate(
+                  value1 * MediaQuery.of(context).size.width,
+                ),
+              child: eventTile,
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    _eventTileKeys.clear();
-
     return ScopedModelDescendant(
       builder: (BuildContext context, Widget child, EventModel model) {
+        if (model.isLoading) return Container();
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: AnimatedList(
@@ -111,16 +150,14 @@ class EventList extends StatelessWidget {
             physics: NeverScrollableScrollPhysics(),
             itemBuilder:
                 (BuildContext context, int index, Animation<double> animation) {
-              GlobalKey<EventTileState> tileKey = GlobalKey<EventTileState>();
-              EventTile newTile = EventTile(
-                //key: tileKey,
-                event: model.events[index],
-                animation: controller,
-              );
-              //_eventTileKeys.add(tileKey);
               return SlideTransition(
                 position: _getPosition(animation),
-                child: newTile,
+                child: EventTile(
+                  event: model.events[index],
+                  animation: controller,
+                  deleteEvent: (Event event) =>
+                      removeSingleItem(context, event),
+                ),
               );
             },
           ),

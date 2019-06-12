@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:keyboard_visibility/keyboard_visibility.dart';
+
 import '../models/event.dart';
-import '../scoped_models/event_model.dart';
 import '../utils/time_utils.dart';
 
 class AddEventRoute extends StatefulWidget {
@@ -15,8 +16,12 @@ class _AddEventRouteState extends State<AddEventRoute>
   AnimationController _controller;
 
   DateTime _eventDate;
-  String _eventName = "";
-  bool _shouldSetDate = true;
+  String _eventName = "An unnamed reminder";
+
+  bool _firstBuild = true;
+  bool _isEditing;
+  bool _keyboardIsVisible = false;
+  bool _pickTimeWhenKeyboardIsDown = false;
 
   static DateTime _initDate = DateTime.now().add(Duration(days: 1));
   static TimeOfDay _initTime = _roundedToHour(TimeOfDay.now());
@@ -27,6 +32,18 @@ class _AddEventRouteState extends State<AddEventRoute>
     _controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 500),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _firstBuild = false;
+    });
+    KeyboardVisibilityNotification().addNewListener(
+      onChange: (bool visible) {
+        _keyboardIsVisible = visible;
+        if (_pickTimeWhenKeyboardIsDown) {
+          _pickTimeWhenKeyboardIsDown = false;
+          _setEventDate(context);
+        }
+      },
     );
   }
 
@@ -54,7 +71,7 @@ class _AddEventRouteState extends State<AddEventRoute>
   Future<DateTime> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
       context: context,
-      initialDate: _initDate,
+      initialDate: _eventDate != null ? _eventDate : _initDate,
       firstDate: _flooredToDay(DateTime.now()),
       lastDate: DateTime(DateTime.now().year + 100),
     );
@@ -64,12 +81,18 @@ class _AddEventRouteState extends State<AddEventRoute>
   Future<TimeOfDay> _selectTime(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: _initTime,
+      initialTime:
+          _eventDate != null ? TimeOfDay.fromDateTime(_eventDate) : _initTime,
     );
     return picked;
   }
 
   Future<Null> _setEventDate(BuildContext context) async {
+    if (_keyboardIsVisible) {
+      FocusScope.of(context).requestFocus(new FocusNode());
+      _pickTimeWhenKeyboardIsDown = true;
+      return;
+    }
     DateTime date = await _selectDate(context);
     if (date == null) {
       _controller.forward();
@@ -90,19 +113,33 @@ class _AddEventRouteState extends State<AddEventRoute>
         time.minute,
       );
     });
+
     _controller.forward();
     return;
   }
 
   Widget _buildTextField() {
+    String initText;
+    if (_firstBuild) {
+      final Object args = ModalRoute.of(context).settings.arguments;
+      if (args != null && args is Event) {
+        Event event = args;
+        initText = event.name;
+      }
+    }
     return Container(
       padding: EdgeInsets.all(8.0),
       margin: EdgeInsets.all(32.0),
       child: TextField(
+        controller: initText == null
+            ? null
+            : TextEditingController(
+                text: initText,
+              ),
         style: Theme.of(context).textTheme.title,
         onChanged: (String name) {
           setState(() {
-            _eventName = name;
+            _eventName = name.isNotEmpty ? name : "An unnamed reminder";
           });
         },
         decoration: InputDecoration(
@@ -114,61 +151,101 @@ class _AddEventRouteState extends State<AddEventRoute>
   }
 
   Widget _buildButtonBar() {
+    Widget complete = _isEditing
+        ? RaisedButton.icon(
+            icon: Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+            label: Text(
+              "Complete",
+              style: Theme.of(context).textTheme.button,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(32.0),
+            ),
+            color: Theme.of(context).disabledColor,
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+          )
+        : Container();
+
+    Widget noTime = RaisedButton(
+      child: Text(
+        "No Notice",
+        style: Theme.of(context).textTheme.button,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(32.0),
+      ),
+      color: _eventDate == null
+          ? Theme.of(context).accentColor
+          : Theme.of(context).disabledColor,
+      onPressed: () {
+        setState(() {
+          _eventDate = null;
+        });
+      },
+    );
+
+    Widget time = RaisedButton(
+      child: Text(
+        "Time",
+        style: Theme.of(context).textTheme.button,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(32.0),
+      ),
+      color: _eventDate != null
+          ? Theme.of(context).accentColor
+          : Theme.of(context).disabledColor,
+      onPressed: () {
+        _setEventDate(context);
+      },
+    );
+
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: <Widget>[
-        RaisedButton(
-          child: Text(
-            "No Notice",
-            style: Theme.of(context).textTheme.button,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
-          ),
-          color: _eventDate == null
-              ? Theme.of(context).accentColor
-              : Theme.of(context).disabledColor,
-          onPressed: () {
-            setState(() {
-              _eventDate = null;
-            });
-          },
-        ),
-        RaisedButton(
-          child: Text(
-            "Time",
-            style: Theme.of(context).textTheme.button,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
-          ),
-          color: _eventDate != null
-              ? Theme.of(context).accentColor
-              : Theme.of(context).disabledColor,
-          onPressed: () {
-            _setEventDate(context);
-          },
-        ),
+        complete,
+        noTime,
+        time,
       ],
     );
+  }
+
+  void _initSetEvent() {
+    if (!_firstBuild) return;
+    final Object args = ModalRoute.of(context).settings.arguments;
+    _isEditing = args != null && args is Event;
+    if (_isEditing) {
+      Event event = args;
+      _eventDate = event.time;
+      _eventName = event.name;
+      _controller.animateTo(
+        1,
+        duration: Duration(),
+      );
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _setEventDate(context);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
-
-    Future.delayed(Duration(seconds: 0)).then((_) {
-      if (_shouldSetDate) _setEventDate(context);
-      _shouldSetDate = false;
-    });
+    _initSetEvent();
     return Scaffold(
       floatingActionButton: AnimatedBuilder(
         animation: _controller,
         builder: (BuildContext context, Widget child) {
-          if (_shouldSetDate) return Container();
           return Transform.scale(
             scale: Curves.bounceOut.transform(_controller.value),
             child: FloatingActionButton(
+              heroTag: "Confirm",
               onPressed: () {
                 Navigator.pop(
                   context,
@@ -198,6 +275,7 @@ class _AddEventRouteState extends State<AddEventRoute>
                         Text(
                           _eventName,
                           style: textTheme.display4,
+                          textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 4.0),
                         _eventDate != null

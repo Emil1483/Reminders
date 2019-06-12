@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:reminders/scoped_models/event_model.dart';
+import 'package:reminders/ui_elements/custom_button.dart';
+import 'package:reminders/ui_elements/tapped_dialog.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../ui_elements/event_list.dart';
@@ -16,7 +18,7 @@ class HomeRoute extends StatefulWidget {
 }
 
 class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
-  ScrollController _controller;
+  ScrollController _scrollController;
   AnimationController _buttonAnim;
   AnimationController _selectionAnim;
   EventList _eventList;
@@ -27,45 +29,64 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
-    _buttonAnim = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 200),
-      animationBehavior: AnimationBehavior.preserve,
-    );
-    _selectionAnim = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 250),
-    );
-    _selectionAnim.addListener(() {
-      if (!_selectionAnim.isAnimating) setState(() {});
-    });
-    _controller = ScrollController();
-    _controller.addListener(
-      () {
-        _buttonAnim.animateTo(
-          _controller.offset > _scrollBeforeButton ? 1 : 0,
-        );
-      },
-    );
+    _initAnimations();
     _eventList = EventList(
       controller: _selectionAnim,
+    );
+    EventModel.of(context).initializeNotifications(
+      onTappedNotification: (int eventId) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return TappedDialog(
+              eventId: eventId,
+              onComplete: () {
+                Event event = EventModel.of(context).getEventById(eventId);
+                if (EventModel.of(context).events.contains(event))
+                  _eventList.removeSingleItem(context, event);
+              },
+            );
+          },
+        );
+      },
     );
   }
 
   @override
   dispose() {
     super.dispose();
-    _controller.dispose();
+    _scrollController.dispose();
     _buttonAnim.dispose();
     _selectionAnim.dispose();
+  }
+
+  void _initAnimations() {
+    _buttonAnim = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200),
+      animationBehavior: AnimationBehavior.preserve,
+    );
+
+    _selectionAnim = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 250),
+    )..addListener(() {
+        if (!_selectionAnim.isAnimating) setState(() {});
+      });
+
+    _scrollController = ScrollController()
+      ..addListener(() {
+        _buttonAnim.animateTo(
+          _scrollController.offset > _scrollBeforeButton ? 1 : 0,
+        );
+      });
   }
 
   Widget _buildRaisedButton() {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
-        padding: EdgeInsets.only(bottom: 82.0),
+        padding: EdgeInsets.only(bottom: 32.0),
         child: AnimatedBuilder(
           animation: _buttonAnim,
           builder: (BuildContext context, Widget child) {
@@ -85,7 +106,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                 ),
                 color: Theme.of(context).accentColor,
                 onPressed: () {
-                  _controller.animateTo(
+                  _scrollController.animateTo(
                     0,
                     curve: Curves.easeOutExpo,
                     duration: Duration(milliseconds: 800),
@@ -100,66 +121,67 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomBar() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: AnimatedBuilder(
-        animation: _selectionAnim,
-        builder: (BuildContext context, Widget child) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(16.0),
+    ShapeBorder buttonBorder = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16.0),
+    );
+    return AnimatedBuilder(
+      animation: _selectionAnim,
+      builder: (BuildContext context, Widget child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(16.0),
+            ),
+          ),
+          height: Curves.easeInOutCubic.transform(_selectionAnim.value) *
+              _bottomBarHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              FlatButton.icon(
+                shape: buttonBorder,
+                textColor: Colors.white,
+                label: Text("Cancel"),
+                icon: Icon(
+                  Icons.cancel,
+                ),
+                onPressed: () {
+                  _selectionAnim.reverse();
+                  EventModel.of(context).clearSelectedEvents();
+                },
               ),
-            ),
-            height: Curves.easeInOutCubic.transform(_selectionAnim.value) *
-                _bottomBarHeight,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.cancel,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      _selectionAnim.reverse();
-                      EventModel.of(context).clearSelectedEvents();
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.done,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      _eventList.removeSelectedItems(context);
-                      _selectionAnim.reverse();
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {},
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              ScopedModelDescendant(
+                builder: (
+                  BuildContext context,
+                  Widget child,
+                  EventModel model,
+                ) {
+                  return FlatButton.icon(
+                    shape: buttonBorder,
+                    disabledTextColor: Theme.of(context).disabledColor,
+                    textColor: Colors.white,
+                    label: Text("Complete"),
+                    icon: Icon(Icons.delete),
+                    onPressed: model.selectedEvents.isNotEmpty
+                        ? () {
+                            _selectionAnim.reverse();
+                            _eventList.removeSelectedItems(context);
+                          }
+                        : null,
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildCustomScrollView() {
     return CustomScrollView(
-      controller: _controller,
+      controller: _scrollController,
       slivers: <Widget>[
         SliverAppBar(
           expandedHeight: 200.0,
@@ -175,9 +197,12 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
                       : "${model.selectedEvents.length} selected";
               return FlexibleSpaceBar(
                 centerTitle: true,
-                title: Text(
-                  text,
-                  style: Theme.of(context).textTheme.headline,
+                title: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    text,
+                    style: Theme.of(context).textTheme.headline,
+                  ),
                 ),
               );
             },
@@ -187,20 +212,7 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
           delegate: SliverChildListDelegate([
             ButtonBar(
               children: <Widget>[
-                IconButton(
-                  icon: Icon(
-                    Icons.search,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {},
-                ),
+                _buildCustomButton(),
               ],
             ),
             _eventList,
@@ -210,34 +222,67 @@ class _HomeRouteState extends State<HomeRoute> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildCustomButton() {
+    GlobalKey<CustomButtonState> key = GlobalKey();
+    return CustomButton(
+      key: key,
+      child: IconButton(
+        icon: Icon(
+          Icons.info,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          key.currentState.down();
+          Navigator.pushNamed(context, "/about");
+        },
+      ),
+    );
+  }
+
+  Widget _buildFAB() {
+    return AnimatedBuilder(
+      animation: _selectionAnim,
+      builder: (BuildContext context, Widget child) {
+        return Transform.scale(
+          scale: Curves.easeInOutCubic.transform(1 - _selectionAnim.value),
+          child: FloatingActionButton(
+            child: Icon(Icons.add),
+            backgroundColor: Theme.of(context).accentColor,
+            onPressed: () async {
+              if (_selectionAnim.value != 0) return;
+              final newEvent = await Navigator.pushNamed(context, "/addEvent");
+              if (newEvent == null) return;
+              _eventList.insertItem(
+                context: context,
+                event: newEvent,
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      floatingActionButton: AnimatedBuilder(
-        animation: _selectionAnim,
-        builder: (BuildContext context, Widget child) {
-          return Transform.scale(
-            scale: Curves.easeInOutCubic.transform(1 - _selectionAnim.value),
-            child: FloatingActionButton(
-              child: Icon(Icons.add),
-              backgroundColor: Theme.of(context).accentColor,
-              onPressed: () async {
-                final event = await Navigator.pushNamed(context, "/addEvent");
-                _eventList.insertItem(
-                  context: context,
-                  event: event,
-                );
-              },
-            ),
-          );
-        },
-      ),
-      body: Stack(
+      floatingActionButton: _buildFAB(),
+      body: Column(
         children: <Widget>[
-          _buildCustomScrollView(),
-          _buildRaisedButton(),
-          _buildBottomBar(),
+          Expanded(
+            flex: 1,
+            child: Stack(
+              children: <Widget>[
+                _buildCustomScrollView(),
+                _buildRaisedButton(),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 0,
+            child: _buildBottomBar(),
+          ),
         ],
       ),
     );
